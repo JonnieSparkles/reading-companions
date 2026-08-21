@@ -3,8 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light">
-<title>Empire of Blue Water — Buccaneer Campaign Atlas</title>
+<meta name="color-scheme" content="dark">
+<meta name="description" content="A campaign atlas for Henry Morgan’s Caribbean: privateer musters, Spanish strongholds, river corridors, and the prizes that fed Port Royal, 1668–1671.">
+<title>Empire of Blue Water — Caribbean Campaign Room</title>
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="social-preview.jpg">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Empire of Blue Water — Caribbean Campaign Room">
+<meta property="og:description" content="A campaign atlas for Henry Morgan’s Caribbean: privateer musters, Spanish strongholds, river corridors, and the prizes that fed Port Royal, 1668–1671.">
+<meta property="og:image" content="https://raw.githubusercontent.com/JonnieSparkles/reading-companions/main/empire-of-blue-water/social-preview.jpg">
+<meta property="og:image:alt" content="Empire of Blue Water campaign room preview">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Empire of Blue Water — Caribbean Campaign Room">
+<meta name="twitter:description" content="A campaign atlas for Henry Morgan’s Caribbean: privateer musters, Spanish strongholds, river corridors, and the prizes that fed Port Royal, 1668–1671.">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/JonnieSparkles/reading-companions/main/empire-of-blue-water/social-preview.jpg">
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
@@ -576,19 +590,753 @@ input[type=range]::-moz-range-thumb{
   .timeline-actions{display:none}
   .icon-btn{width:34px;height:34px}
 }
+
+/* ================================================================
+   BLUE EMPIRE / CAMPAIGN ROOM
+   A dark plotted-chart system, deliberately separate from the
+   parchment reading-journal language used by the Cook companion.
+   ================================================================ */
+:root{
+  --paper:#071b25;
+  --paper2:#0b2633;
+  --paper3:#133845;
+  --ink:#edf5ef;
+  --muted:#aac1bf;
+  --faint:#64858a;
+  --line:rgba(142,199,199,.18);
+  --panel:rgba(6,25,35,.94);
+  --shadow:0 22px 55px rgba(0,8,13,.42);
+  --c1:#d5a84f;
+  --c2:#48a098;
+  --c3:#d45e43;
+  --spanish:#bd5364;
+  --base:#4ea9b2;
+  --void:#020d14;
+  --deep:#061722;
+  --navy:#092633;
+  --navy2:#103744;
+  --foam:#edf5ef;
+  --brass:#d5a84f;
+  --signal:#d45e43;
+}
+
+html{background:var(--void)}
+body{
+  color:var(--ink);
+  background:var(--void);
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+body::after{
+  content:"";
+  position:fixed;inset:0;z-index:9999;pointer-events:none;
+  opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
+  mix-blend-mode:screen;
+}
+button,input{font-family:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible{
+  outline:1px solid #78c7c6!important;
+  outline-offset:3px;
+}
+
+.app{
+  grid-template-columns:minmax(0,1fr) 372px;
+  background:var(--void);
+}
+.sidebar{
+  grid-column:2;
+  grid-row:1;
+  z-index:30;
+  padding:0 0 16px;
+  border:0;
+  border-left:1px solid rgba(126,192,194,.22);
+  background:
+    linear-gradient(90deg,rgba(93,171,174,.035) 1px,transparent 1px),
+    linear-gradient(180deg,rgba(93,171,174,.035) 1px,transparent 1px),
+    linear-gradient(180deg,#0a2633 0%,#061923 100%);
+  background-size:32px 32px,32px 32px,auto;
+  box-shadow:-14px 0 40px rgba(0,8,13,.27);
+  scrollbar-color:#2c6970 #061923;
+  scrollbar-width:thin;
+}
+.sidebar::before{
+  position:fixed;
+  left:auto;right:0;top:0;bottom:0;width:372px;
+  opacity:1;
+  background:
+    linear-gradient(90deg,rgba(213,168,79,.75),rgba(213,168,79,0)) 0 0/110px 2px no-repeat,
+    radial-gradient(circle at 92% 3%,rgba(78,169,178,.17),transparent 24%);
+  mix-blend-mode:normal;
+}
+.sidebar::-webkit-scrollbar{width:7px}
+.sidebar::-webkit-scrollbar-track{background:#061923}
+.sidebar::-webkit-scrollbar-thumb{background:#285966;border:2px solid #061923}
+
+.hero{
+  grid-template-columns:minmax(0,1fr) 76px;
+  gap:15px;
+  margin:0;
+  padding:24px 19px 20px;
+  border:0;
+  border-bottom:1px solid var(--line);
+  border-radius:0;
+  background:
+    linear-gradient(135deg,rgba(78,169,178,.10),transparent 45%),
+    rgba(3,17,25,.62);
+  box-shadow:none;
+}
+.hero::before{
+  content:"DOSSIER 03";
+  position:absolute;right:18px;bottom:6px;
+  color:rgba(159,203,201,.28);
+  font:700 8px/1 "Courier New",monospace;
+  letter-spacing:.18em;
+}
+.hero::after{
+  width:125px;height:125px;right:-61px;bottom:-62px;
+  border:1px dashed rgba(78,169,178,.21);
+  box-shadow:0 0 0 13px rgba(78,169,178,.025),0 0 0 27px rgba(78,169,178,.018);
+}
+.kicker{
+  margin-bottom:10px;
+  color:var(--brass);
+  font:700 9px/1.25 "Courier New",monospace;
+  letter-spacing:.14em;
+}
+.hero h1{
+  color:var(--foam);
+  font:600 33px/.94 Georgia,"Times New Roman",serif;
+  letter-spacing:-.035em;
+  text-wrap:balance;
+}
+.hero .deck{
+  margin-top:12px;
+  color:#a8c0bd;
+  font-size:11.5px;
+  line-height:1.48;
+}
+.morgan{
+  width:76px;height:104px;
+  border:1px solid rgba(213,168,79,.55);
+  border-radius:0;
+  background:#102c38;
+  box-shadow:7px 7px 0 rgba(213,168,79,.08);
+  clip-path:polygon(0 0,calc(100% - 11px) 0,100% 11px,100% 100%,11px 100%,0 calc(100% - 11px));
+}
+.morgan::after{
+  content:"H. MORGAN";
+  position:absolute;left:0;right:0;bottom:0;z-index:2;
+  padding:5px 3px 4px;
+  color:#f4d98f;background:rgba(2,14,21,.85);
+  text-align:center;
+  font:700 7px/1 "Courier New",monospace;letter-spacing:.12em;
+}
+.morgan img{filter:grayscale(1) sepia(.16) hue-rotate(140deg) saturate(1.4) contrast(1.17) brightness(.82)}
+.morgan-fallback{color:var(--muted);background:#0d2a36}
+
+.toolbar{
+  top:0;
+  margin:0 0 13px;
+  padding:14px 18px 12px;
+  border-bottom:1px solid var(--line);
+  background:rgba(5,23,32,.94);
+  backdrop-filter:blur(12px);
+}
+.modebar{gap:0;margin-bottom:10px}
+.pill{
+  flex:1;
+  padding:8px 9px;
+  border-color:rgba(133,190,191,.21);
+  border-radius:0;
+  color:#829fa1;
+  background:#081e29;
+  font:700 8.5px/1 "Courier New",monospace;
+  letter-spacing:.05em;
+  text-transform:uppercase;
+}
+.pill + .pill{border-left:0}
+.pill.active{
+  color:#07161f;
+  border-color:var(--brass);
+  background:var(--brass);
+}
+.search{
+  border:0;
+  border-bottom:1px solid rgba(119,185,187,.34);
+  border-radius:0;
+  padding:10px 3px 9px 24px;
+  color:var(--foam);
+  background:
+    linear-gradient(45deg,transparent 46%,#64aeb0 47% 53%,transparent 54%) 4px 11px/8px 8px no-repeat,
+    linear-gradient(135deg,transparent 46%,#64aeb0 47% 53%,transparent 54%) 10px 11px/8px 8px no-repeat,
+    transparent;
+  box-shadow:none;
+  font:400 11px/1.2 "Courier New",monospace;
+}
+.search::placeholder{color:#597a80}
+.search:focus{
+  border-color:#65b4b7;
+  box-shadow:0 5px 16px rgba(53,168,174,.08);
+}
+.mobile-map-jump{
+  display:none;
+  min-height:42px;
+  margin-top:9px;
+  align-items:center;
+  justify-content:center;
+  border:1px solid rgba(213,168,79,.42);
+  color:var(--brass);
+  background:rgba(213,168,79,.055);
+  text-decoration:none;
+  font:700 8.5px/1 "Courier New",monospace;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+}
+
+.section-title{margin:0 19px 8px}
+.section-title strong{
+  color:#d7e6df;
+  font:700 8.5px/1.2 "Courier New",monospace;
+  letter-spacing:.16em;
+}
+.section-title span{
+  color:#5f8185;
+  font:400 8.5px/1 "Courier New",monospace;
+}
+.campaigns{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:5px;
+  margin:0 17px 16px;
+}
+.campaign{
+  position:relative;
+  min-height:86px;
+  padding:10px 9px 9px;
+  border:1px solid rgba(126,185,186,.16);
+  border-radius:0;
+  color:var(--ink);
+  background:rgba(7,29,40,.78);
+  transition:background .16s ease,border-color .16s ease,transform .16s ease;
+}
+.campaign::after{
+  content:"";
+  position:absolute;right:5px;bottom:5px;width:5px;height:5px;
+  border-right:1px solid #5b8589;border-bottom:1px solid #5b8589;
+}
+.campaign:hover{transform:translateY(-2px);background:#0d3341;border-color:rgba(121,190,190,.33)}
+.campaign.active{background:#123744;border-color:rgba(213,168,79,.52);box-shadow:inset 0 0 0 1px rgba(213,168,79,.09)}
+.campaign .line{width:100%;height:2px;border-radius:0;margin-bottom:10px}
+.campaign .year{
+  color:#73969a;
+  font:700 8px/1.1 "Courier New",monospace;
+  letter-spacing:.08em;
+}
+.campaign .name{
+  margin-top:6px;
+  color:#e7f0e9;
+  font:600 11px/1.18 Georgia,"Times New Roman",serif;
+}
+
+.stop-list{gap:3px;margin:0 12px;padding-bottom:14px}
+.stop-card{
+  grid-template-columns:43px minmax(0,1fr) 12px;
+  gap:10px;
+  min-height:67px;
+  padding:8px 8px;
+  border:1px solid transparent;
+  border-left:2px solid rgba(91,143,148,.24);
+  border-radius:0;
+  color:var(--ink);
+  background:rgba(5,23,32,.60);
+  transition:background .15s ease,border-color .15s ease,transform .15s ease;
+}
+.stop-card:hover{
+  transform:translateX(-3px);
+  color:var(--ink);
+  border-color:rgba(91,166,169,.28);
+  border-left-color:#5ba5a8;
+  background:#0c2d3a;
+}
+.stop-card.active{
+  color:var(--ink);
+  border-color:rgba(213,168,79,.34);
+  border-left-color:var(--brass);
+  background:linear-gradient(90deg,rgba(213,168,79,.13),rgba(11,43,55,.92) 40%);
+  box-shadow:none;
+}
+.stop-icon{
+  width:41px;height:41px;
+  border:1px solid rgba(220,236,228,.28);
+  border-radius:0;
+  clip-path:polygon(25% 0,75% 0,100% 25%,100% 75%,75% 100%,25% 100%,0 75%,0 25%);
+  box-shadow:none;
+  font:700 11px/1 "Courier New",monospace;
+}
+.stop-icon::after{display:none}
+.stop-card .date{
+  color:#789a9e;
+  font:700 7.8px/1.2 "Courier New",monospace;
+  letter-spacing:.07em;
+}
+.stop-card h3{
+  margin:2px 0 2px;
+  color:#edf5ef;
+  font:600 13px/1.08 Georgia,"Times New Roman",serif;
+}
+.stop-card p{color:#84a2a3;font-size:9.5px;line-height:1.25}
+.chev{color:#5f8e91;font-family:"Courier New",monospace}
+.note{
+  margin:4px 18px 0;
+  padding:13px 0 6px;
+  border-top:1px dashed rgba(119,179,180,.22);
+  color:#67888b;
+  font:400 8.8px/1.5 "Courier New",monospace;
+}
+
+.briefing{
+  margin:0 17px 15px;
+  border:1px solid rgba(108,177,179,.20);
+  background:rgba(4,21,30,.74);
+}
+.briefing summary{
+  position:relative;
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  gap:3px 9px;
+  align-items:center;
+  min-height:48px;
+  padding:9px 31px 9px 10px;
+  color:var(--ink);
+  cursor:pointer;
+  list-style:none;
+}
+.briefing summary::-webkit-details-marker{display:none}
+.briefing summary::after{
+  content:"+";
+  position:absolute;right:11px;top:50%;transform:translateY(-50%);
+  color:#73a7aa;
+  font:700 15px/1 "Courier New",monospace;
+}
+.briefing[open] summary::after{content:"−";color:var(--brass)}
+.briefing[open] summary{border-bottom:1px solid rgba(108,177,179,.18);background:rgba(16,53,65,.45)}
+.briefing-code{
+  grid-row:1/3;
+  min-width:45px;
+  padding:5px 4px;
+  border:1px solid rgba(213,168,79,.34);
+  color:var(--brass);
+  text-align:center;
+  font:700 7px/1 "Courier New",monospace;
+  letter-spacing:.08em;text-transform:uppercase;
+}
+.briefing-label{
+  color:#e8f1eb;
+  font:600 12px/1.1 Georgia,"Times New Roman",serif;
+}
+.briefing summary small{
+  color:#63878b;
+  font:400 7.8px/1 "Courier New",monospace;
+  letter-spacing:.04em;
+}
+.briefing-body{padding:10px}
+.brief-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.brief-item{
+  padding:8px;
+  border-left:2px solid rgba(78,169,178,.43);
+  background:rgba(9,39,50,.64);
+}
+.brief-item > span{
+  display:block;margin-bottom:4px;
+  color:#65a2a5;
+  font:700 7px/1 "Courier New",monospace;
+  text-transform:uppercase;letter-spacing:.08em;
+}
+.brief-item h4,.cast-grid h4,.aftermath-list h4{
+  margin:0 0 4px;
+  color:#e8f1eb;
+  font:600 10.5px/1.15 Georgia,"Times New Roman",serif;
+}
+.brief-item p,.cast-grid p,.aftermath-list p{
+  margin:0;color:#8eacad;
+  font-size:8.7px;line-height:1.42;
+}
+.brief-wide{grid-column:1/-1}
+.human-cost{border-left-color:var(--signal);background:rgba(142,53,42,.13)}
+.human-cost > span{color:#dc8069}
+
+.briefing-cast,.briefing-aftermath{margin-top:11px}
+.cast-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(108,177,179,.12)}
+.cast-grid article{padding:9px;background:#071f2a}
+.cast-grid p{font-size:8.3px}
+
+.aftermath-list{display:grid;gap:1px;padding:0;background:rgba(108,177,179,.12)}
+.aftermath-list article{
+  display:grid;grid-template-columns:49px minmax(0,1fr);gap:10px;
+  padding:9px 10px;background:#071f2a;
+}
+.aftermath-list time{
+  color:var(--brass);
+  font:700 9px/1.2 "Courier New",monospace;
+}
+.aftermath-list .catastrophe{background:linear-gradient(90deg,rgba(189,83,100,.17),#071f2a 55%)}
+.aftermath-list .catastrophe time{color:#e67a86}
+
+.briefing-primer + .section-title{margin-top:2px}
+
+.map-stage{
+  grid-column:1;
+  grid-row:1;
+  background:#03131c;
+}
+#map{background:#03131c}
+.leaflet-tile-pane{
+  filter:grayscale(.82) invert(.88) sepia(.16) saturate(.72) hue-rotate(142deg) brightness(.72) contrast(1.18);
+}
+.map-wash{
+  background:
+    linear-gradient(rgba(87,171,174,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(87,171,174,.045) 1px,transparent 1px),
+    radial-gradient(circle at 48% 48%,transparent 38%,rgba(1,12,18,.42) 100%);
+  background-size:80px 80px,80px 80px,auto;
+  box-shadow:inset 0 0 130px rgba(0,7,12,.67);
+  mix-blend-mode:screen;
+}
+.map-stage::before,
+.map-stage::after{
+  content:"";position:absolute;z-index:780;pointer-events:none;
+}
+.map-stage::before{
+  left:12px;top:130px;bottom:112px;width:7px;
+  border-left:1px solid rgba(102,181,183,.28);
+  background:repeating-linear-gradient(180deg,#6daeb0 0 1px,transparent 1px 18px);
+}
+.map-stage::after{
+  left:28px;right:28px;bottom:104px;height:5px;
+  border-bottom:1px solid rgba(102,181,183,.20);
+  background:repeating-linear-gradient(90deg,#6daeb0 0 1px,transparent 1px 28px);
+}
+
+.map-title{
+  left:26px;top:22px;
+  width:min(480px,calc(100% - 150px));
+  padding:13px 16px 14px 18px;
+  border:1px solid rgba(108,181,183,.25);
+  border-left:3px solid var(--brass);
+  border-radius:0;
+  color:var(--foam);
+  background:rgba(4,20,29,.88);
+  box-shadow:12px 12px 0 rgba(0,10,15,.18);
+  backdrop-filter:blur(9px);
+  clip-path:polygon(0 0,calc(100% - 13px) 0,100% 13px,100% 100%,0 100%);
+}
+.map-eyebrow{
+  margin-bottom:6px;
+  color:var(--brass);
+  font:700 8px/1 "Courier New",monospace;
+  letter-spacing:.15em;text-transform:uppercase;
+}
+.map-title strong{
+  color:#eff7f0;
+  font:600 16px/1.1 Georgia,"Times New Roman",serif;
+}
+.map-title span{margin-top:5px;color:#8eacad;font:400 9.5px/1.38 "Courier New",monospace}
+.coordinate-readout{
+  position:absolute;z-index:820;right:18px;top:18px;
+  min-width:155px;padding:7px 10px;
+  border:1px solid rgba(105,183,185,.22);
+  color:#8fb8b8;background:rgba(3,18,27,.82);
+  text-align:center;
+  font:700 8.5px/1 "Courier New",monospace;letter-spacing:.10em;
+  backdrop-filter:blur(6px);
+}
+
+.compass{
+  right:19px;top:84px;
+  width:72px;height:72px;
+  border:1px dashed rgba(93,179,182,.46);
+  border-radius:50%;
+  background:rgba(3,20,29,.76);
+  box-shadow:0 0 0 7px rgba(6,34,43,.35),0 12px 30px rgba(0,7,11,.32);
+  backdrop-filter:blur(6px);
+}
+.compass::before,.compass::after{content:"";position:absolute;background:rgba(92,176,179,.22)}
+.compass::before{left:50%;top:-8px;bottom:-8px;width:1px}
+.compass::after{top:50%;left:-8px;right:-8px;height:1px}
+.compass svg{width:58px;height:58px}
+.compass svg circle{stroke:#62aeb0!important;fill:transparent!important}
+.compass svg path:nth-of-type(odd){fill:var(--signal)!important}
+.compass svg path:nth-of-type(even){fill:var(--brass)!important}
+.compass svg circle:last-of-type{fill:#0a2732!important;stroke:#d5a84f!important}
+.compass text{fill:#86b8b8;font:700 8px/1 "Courier New",monospace}
+
+.legend{
+  right:18px;bottom:108px;
+  width:205px;
+  padding:11px 13px 12px;
+  border:1px solid rgba(106,179,181,.23);
+  border-radius:0;
+  color:var(--ink);
+  background:rgba(4,21,30,.90);
+  box-shadow:10px 10px 0 rgba(0,8,12,.18);
+  backdrop-filter:blur(8px);
+  clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%);
+}
+.legend-title{
+  color:#d7e7e1;
+  font:700 8px/1.2 "Courier New",monospace;
+  letter-spacing:.16em;
+}
+.legend-row{color:#8eaaaa;font:400 8.5px/1.25 "Courier New",monospace}
+.legend-line{border-top-width:2px}
+.legend-dot{border-width:2px;background:#08232e}
+.legend-square{width:9px;height:9px}
+
+.detail{
+  left:27px;bottom:108px;
+  width:min(515px,calc(100% - 255px));
+  min-width:390px;
+  grid-template-columns:168px minmax(0,1fr);
+  border:1px solid rgba(104,181,183,.28);
+  border-radius:0;
+  color:var(--ink);
+  background:rgba(5,23,32,.94);
+  box-shadow:var(--shadow),12px 12px 0 rgba(0,9,14,.18);
+  backdrop-filter:blur(10px);
+  clip-path:polygon(0 0,calc(100% - 15px) 0,100% 15px,100% 100%,15px 100%,0 calc(100% - 15px));
+}
+.detail-media{
+  min-height:214px;
+  border-right:1px solid rgba(99,176,178,.25);
+  background:#0b2935;
+}
+.detail-media::after{
+  content:"ARCHIVE IMAGE";
+  position:absolute;left:0;right:0;bottom:0;z-index:2;
+  padding:5px 7px;
+  color:#bcd2cd;background:rgba(2,15,22,.82);
+  font:700 7px/1 "Courier New",monospace;letter-spacing:.12em;
+}
+.detail-media img{
+  min-height:214px;
+  filter:grayscale(.55) sepia(.12) hue-rotate(135deg) saturate(.82) contrast(1.15) brightness(.74);
+}
+.detail-media .fallback{
+  color:#74979a;
+  background:
+    linear-gradient(135deg,transparent 49%,rgba(87,168,171,.08) 50%,transparent 51%),
+    repeating-linear-gradient(0deg,transparent 0 13px,rgba(87,168,171,.04) 13px 14px),
+    #0a2834;
+  font:700 8px/1.5 "Courier New",monospace;
+}
+.detail-body{padding:16px 17px 14px}
+.detail-topline{margin-bottom:8px}
+.detail-kicker{
+  color:var(--brass);
+  font:700 8px/1.2 "Courier New",monospace;
+  letter-spacing:.10em;
+}
+.detail-type{
+  padding:3px 5px;
+  border:1px solid rgba(101,177,179,.27);
+  color:#79a7a9;
+  font:700 7px/1 "Courier New",monospace;
+}
+.detail-title{color:#f0f7f1;font:600 22px/1.04 Georgia,"Times New Roman",serif}
+.detail-sub{color:#78a0a2;font:400 8.8px/1.35 "Courier New",monospace}
+.detail-text{color:#afc5c0;font-size:10.5px;line-height:1.48}
+.spoiler{
+  border-left:2px solid var(--signal);
+  background:rgba(212,94,67,.09);
+  color:#c6d5cf;
+  font-size:9.5px;
+}
+.action{
+  padding:7px 9px;
+  border:1px solid rgba(105,181,183,.28);
+  border-radius:0;
+  color:#a9c1bf;background:#092733;
+  font:700 8px/1 "Courier New",monospace;
+  text-transform:uppercase;letter-spacing:.05em;
+}
+.action.primary{color:#071821;background:var(--brass);border-color:var(--brass)}
+.action:hover{filter:brightness(1.12)}
+
+.timeline{
+  left:27px;right:18px;bottom:18px;
+  height:68px;
+  gap:14px;
+  padding:10px 12px;
+  border:1px solid rgba(105,181,183,.26);
+  border-radius:0;
+  color:var(--ink);
+  background:rgba(4,20,29,.94);
+  box-shadow:0 15px 40px rgba(0,7,11,.38);
+  backdrop-filter:blur(10px);
+  clip-path:polygon(0 0,100% 0,100% 100%,12px 100%,0 calc(100% - 12px));
+}
+.transport{gap:4px}
+.icon-btn{
+  width:36px;height:36px;
+  border:1px solid rgba(105,181,183,.27);
+  border-radius:0;
+  color:#91b3b3;background:#0a2935;
+  font-family:"Courier New",monospace;
+}
+.icon-btn.play{color:#071820;background:var(--brass);border-color:var(--brass)}
+.range-meta{color:#719498;font:400 8px/1 "Courier New",monospace}
+.range-meta strong{color:#c8dbd5;font:700 9px/1 "Courier New",monospace}
+input[type=range]{height:2px;border-radius:0;background:rgba(137,190,191,.16)}
+input[type=range]::-webkit-slider-thumb{
+  width:13px;height:13px;border-radius:0;
+  transform:rotate(45deg);
+  border:2px solid var(--brass);background:#08242f;box-shadow:none;
+}
+input[type=range]::-moz-range-thumb{
+  width:10px;height:10px;border-radius:0;
+  transform:rotate(45deg);
+  border:2px solid var(--brass);background:#08242f;
+}
+.timeline-actions{gap:4px}
+.small-btn{
+  padding:8px 9px;
+  border:1px solid rgba(105,181,183,.24);
+  border-radius:0;
+  color:#88aaab;background:#08242f;
+  font:700 7.5px/1 "Courier New",monospace;
+  text-transform:uppercase;letter-spacing:.04em;
+}
+.small-btn:hover{color:#f0d895;border-color:rgba(213,168,79,.52)}
+
+.buc-marker{
+  width:29px;height:29px;
+  border:1px solid rgba(235,245,237,.72);
+  border-radius:0;
+  clip-path:polygon(24% 0,76% 0,100% 24%,100% 76%,76% 100%,24% 100%,0 76%,0 24%);
+  color:#fff;
+  box-shadow:0 0 0 3px rgba(1,11,16,.68),0 4px 12px rgba(0,6,10,.5);
+  font:700 9px/1 "Courier New",monospace;
+}
+.buc-marker.active{
+  transform:scale(1.23);
+  box-shadow:0 0 0 3px rgba(213,168,79,.35),0 0 18px rgba(78,169,178,.42);
+}
+.context-marker{
+  width:11px;height:11px;
+  border:1px solid #f0bdc6;
+  background:var(--spanish);
+  box-shadow:0 0 0 3px rgba(3,15,22,.62);
+}
+.leaflet-tooltip.chart-tip{
+  border:1px solid rgba(102,181,183,.26);
+  border-radius:0;
+  color:#d8e7e1;background:rgba(4,22,31,.94);
+  box-shadow:6px 6px 0 rgba(0,8,12,.18);
+  font:400 8.5px/1.3 "Courier New",monospace;
+}
+.leaflet-tooltip.chart-tip::before{border-top-color:#0a2833}
+.leaflet-popup-content-wrapper{
+  border:1px solid rgba(100,179,181,.25);
+  border-radius:0;
+  color:var(--ink);background:#071f2a;
+  box-shadow:10px 10px 0 rgba(0,8,12,.25);
+}
+.leaflet-popup-tip{background:#071f2a}
+.leaflet-popup-content{font-family:inherit}
+.pop-date{color:var(--brass);font:700 7.5px/1.2 "Courier New",monospace}
+.pop-title{color:#edf5ef;font:600 15px/1.13 Georgia,"Times New Roman",serif}
+.pop-text{color:#8facac;font:400 8.8px/1.4 "Courier New",monospace}
+.leaflet-control-zoom{
+  margin-top:52px!important;margin-right:18px!important;
+  border:1px solid rgba(99,178,180,.26)!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.leaflet-control-zoom a{
+  color:#8ab5b6!important;background:#061f2a!important;
+  border-color:rgba(99,178,180,.18)!important;
+  font-family:"Courier New",monospace!important;
+}
+.leaflet-control-zoom a:hover{color:#091a21!important;background:var(--brass)!important}
+.leaflet-control-attribution{
+  color:#527a7f!important;background:rgba(2,15,22,.78)!important;
+  font:400 7px/1.2 "Courier New",monospace!important;
+}
+.leaflet-control-attribution a{color:#719da0!important}
+
+@media(max-width:1100px) and (min-width:981px){
+  .app{grid-template-columns:minmax(0,1fr) 340px}
+  .sidebar::before{width:340px}
+  .detail{width:min(470px,calc(100% - 225px));grid-template-columns:145px minmax(0,1fr)}
+  .detail-media,.detail-media img{min-height:218px}
+  .legend{width:190px}
+  .timeline-actions .small-btn:nth-child(2){display:none}
+}
+
+@media(max-width:980px){
+  html,body{max-width:100%;overflow-x:hidden}
+  body{overflow-y:auto}
+  .app{width:100%;min-width:0;height:auto;grid-template-columns:minmax(0,1fr)}
+  .sidebar{
+    grid-column:1;grid-row:1;width:100%;min-width:0;height:auto;
+    border-left:0;border-bottom:1px solid rgba(112,184,185,.22);
+  }
+  .sidebar::before{position:absolute;left:0;right:0;width:100%}
+  .map-stage{grid-column:1;grid-row:2;width:100%;min-width:0;height:78vh;min-height:660px;scroll-margin-top:8px}
+  .toolbar{position:relative}
+  .mobile-map-jump{display:flex}
+  .stop-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .note{padding-bottom:12px}
+}
+
+@media(max-width:680px){
+  .sidebar{padding:0 0 12px}
+  .hero{grid-template-columns:minmax(0,1fr) 70px;padding:20px 15px 17px}
+  .hero > *{min-width:0}
+  .hero h1{font-size:28px}
+  .morgan{width:70px;height:96px}
+  .toolbar{padding-left:14px;padding-right:14px}
+  .modebar{align-items:stretch}
+  .pill{min-width:0;min-height:44px;padding:7px 5px;line-height:1.2;white-space:normal}
+  .search{min-width:0}
+  .campaigns{grid-template-columns:repeat(3,minmax(0,1fr));margin-left:14px;margin-right:14px}
+  .campaign{min-height:82px;padding:9px 7px}
+  .campaign .name{font-size:10px}
+  .briefing{margin-left:14px;margin-right:14px}
+  .brief-grid{grid-template-columns:1fr}
+  .brief-wide{grid-column:auto}
+  .stop-list{grid-template-columns:1fr}
+  .map-stage{height:84vh;min-height:720px}
+  .map-title{left:18px;top:16px;right:88px;width:auto}
+  .coordinate-readout{display:none}
+  .compass{right:15px;top:98px;width:58px;height:58px}
+  .compass svg{width:46px;height:46px}
+  .leaflet-control-zoom{margin-top:17px!important;margin-right:15px!important}
+  .legend{display:none}
+  .detail{
+    left:18px;right:14px;bottom:106px;
+    width:auto;min-width:0;
+    grid-template-columns:100px minmax(0,1fr)
+  }
+  .detail-media,.detail-media img{min-height:220px}
+  .detail-body{padding:12px}
+  .detail-title{font-size:18px}
+  .detail-text{max-height:5.9em;overflow:auto}
+  .timeline{left:18px;right:14px;bottom:15px;height:72px;grid-template-columns:auto minmax(0,1fr)}
+  .timeline-actions{display:none}
+}
 </style>
 </head>
 
 <body>
 <div class="app">
-  <aside class="sidebar">
+  <aside id="dossier" class="sidebar">
     <section class="hero">
       <div>
-        <div class="kicker">Reading companion · Caribbean 1660s–1670s</div>
+        <div class="kicker">Campaign room / West Indies / 1668–1671</div>
         <h1>Empire of Blue Water</h1>
         <p class="deck">
-          A campaign atlas for Henry Morgan’s Caribbean: privateer bases, Spanish ports,
-          inland marches, lake battles, and the routes that made Port Royal rich.
+          Plot Henry Morgan’s Caribbean as a chain of operations: privateer musters,
+          Spanish strongholds, river corridors, and the prizes that fed Port Royal.
         </p>
       </div>
       <div class="morgan">
@@ -602,40 +1350,111 @@ input[type=range]::-moz-range-thumb{
     <div class="toolbar">
       <div class="modebar">
         <button id="spoilerLight" class="pill active" type="button">Spoiler-light</button>
-        <button id="spoilerFull" class="pill" type="button">Full campaign notes</button>
+        <button id="spoilerFull" class="pill" type="button">Full campaign + source notes</button>
       </div>
       <input id="search" class="search" type="search" placeholder="Search Port Royal, Chagres, Maracaibo…" autocomplete="off">
+      <a class="mobile-map-jump" href="#mapStage">View active map ↓</a>
     </div>
 
+    <details class="briefing briefing-primer">
+      <summary>
+        <span class="briefing-code">Brief 01</span>
+        <span class="briefing-label">Before the campaigns</span>
+        <small>How the machine worked</small>
+      </summary>
+      <div class="briefing-body brief-grid">
+        <article class="brief-item">
+          <span>1655</span>
+          <h4>England takes Jamaica</h4>
+          <p>The new colony is exposed, underfunded, and planted inside Spain’s Caribbean system. Port Royal grows from that insecurity.</p>
+        </article>
+        <article class="brief-item">
+          <span>Political cover</span>
+          <h4>Modyford’s commissions</h4>
+          <p>Governor Thomas Modyford turns privateers into an unofficial navy: cheaper than defending Jamaica and useful against Spain.</p>
+        </article>
+        <article class="brief-item">
+          <span>Terms of the trade</span>
+          <h4>Buccaneer, privateer, pirate</h4>
+          <p>A commission could make a raid legal to England and criminal to Spain. “Buccaneer” described the Caribbean brotherhood; “pirate” was often the verdict of the losing side.</p>
+        </article>
+        <article class="brief-item">
+          <span>The target system</span>
+          <h4>Spain’s long supply lines</h4>
+          <p>Ports, silver roads, and distant garrisons made an enormous empire rich but brittle. Morgan attacked connections and chokepoints, not territory he meant to hold.</p>
+        </article>
+        <article class="brief-item brief-wide human-cost">
+          <span>Reader’s lens</span>
+          <h4>Strategy and terror were inseparable</h4>
+          <p>Ransom, forced guides, torture, imprisonment, and threats against civilians were operating methods—not incidental excesses. Accounts disagree on particulars, but not on the campaigns’ coercive foundation.</p>
+        </article>
+      </div>
+    </details>
+
     <div class="section-title">
-      <strong>Campaign charts</strong>
-      <span id="campaignHint">Choose a route</span>
+      <strong>Operations</strong>
+      <span id="campaignHint">3 plotted campaigns</span>
     </div>
 
     <div id="campaigns" class="campaigns"></div>
 
     <div class="section-title">
-      <strong>Charted events</strong>
+      <strong>Dispatch log</strong>
       <span id="stopCount"></span>
     </div>
 
     <div id="stopList" class="stop-list"></div>
 
+    <details class="briefing briefing-cast">
+      <summary>
+        <span class="briefing-code">Brief 02</span>
+        <span class="briefing-label">Names to track</span>
+        <small>The book’s wider cast</small>
+      </summary>
+      <div class="briefing-body cast-grid">
+        <article><h4>Thomas Modyford</h4><p>Governor of Jamaica; Morgan’s patron and political shield.</p></article>
+        <article><h4>Edward Mansvelt</h4><p>Morgan’s predecessor among the Port Royal privateers.</p></article>
+        <article><h4>Alexandre Exquemelin</h4><p>Buccaneer chronicler; indispensable, vivid, hostile, and disputed.</p></article>
+        <article><h4>François l’Olonnais</h4><p>A brutal French buccaneer whose career shows the movement beyond Morgan.</p></article>
+        <article><h4>Joseph Bradley</h4><p>Commander of the costly advance assault on Fort San Lorenzo.</p></article>
+        <article><h4>Juan Pérez de Guzmán</h4><p>President of Panama and commander of its defense in 1671.</p></article>
+      </div>
+    </details>
+
+    <details class="briefing briefing-aftermath">
+      <summary>
+        <span class="briefing-code">Brief 03</span>
+        <span class="briefing-label">After the raids</span>
+        <small>1672–1692</small>
+      </summary>
+      <div class="briefing-body aftermath-list">
+        <article><time>1672</time><div><h4>Called to England</h4><p>Panama has become a diplomatic liability. Morgan is sent across the Atlantic to answer for the raid.</p></div></article>
+        <article><time>1674</time><div><h4>Sir Henry returns</h4><p>Instead of disgrace, Morgan is knighted and returns as lieutenant governor of Jamaica—the outlaw absorbed into empire.</p></div></article>
+        <article><time>1684–85</time><div><h4>The battle over memory</h4><p>An English edition of Exquemelin depicts Morgan as a pirate and monster. Morgan sues the publishers; the contested claims are never tested at trial.</p></div></article>
+        <article><time>1688</time><div><h4>Morgan dies</h4><p>Ill health ends a career spent moving between sanctioned violence, wealth, and colonial office.</p></div></article>
+        <article class="catastrophe"><time>1692</time><div><h4>Port Royal sinks</h4><p>Earthquake, liquefaction, and sea destroy much of the town. The catastrophe supplies the book’s final judgment on the world that made Morgan.</p></div></article>
+      </div>
+    </details>
+
     <div class="note">
-      This is built as a reading aid, not a tactical reconstruction. Positions for historic towns and forts
-      are close to their modern sites; river-crossing waypoints are approximate. Dates around the Panama
-      march vary in later retellings, partly because of errors in English translations of Exquemelin.
+      This is a reading aid, not a tactical reconstruction. Historic sites are plotted near their modern
+      locations and river-crossing waypoints are approximate. Exquemelin is indispensable but contested;
+      English and Spanish records conflict over dates, numbers, atrocities, and responsibility for the fire
+      at Panama. Full notes flag disputes that matter to the story.
     </div>
   </aside>
 
-  <main class="map-stage">
+  <main id="mapStage" class="map-stage">
     <div id="map"></div>
     <div class="map-wash"></div>
 
     <div class="map-title">
+      <div class="map-eyebrow">Active field chart / Henry Morgan</div>
       <strong id="mapTitle">Morgan’s Caribbean</strong>
       <span id="mapSubtitle">Select one of the three campaign charts, then move through it event by event.</span>
     </div>
+
+    <div id="coordinateReadout" class="coordinate-readout">16°06′N / 77°48′W</div>
 
     <div class="compass" aria-hidden="true">
       <svg viewBox="0 0 100 100">
@@ -654,7 +1473,7 @@ input[type=range]::-moz-range-thumb{
     </div>
 
     <div class="legend">
-      <div class="legend-title">Chart key</div>
+      <div class="legend-title">Signals &amp; routes</div>
       <div class="legend-row"><span class="legend-line" style="border-color:var(--c1)"></span><span>1668 · Cuba & Porto Bello</span></div>
       <div class="legend-row"><span class="legend-line" style="border-color:var(--c2)"></span><span>1668–69 · Lake Maracaibo</span></div>
       <div class="legend-row"><span class="legend-line" style="border-color:var(--c3)"></span><span>1670–71 · Panama</span></div>
@@ -677,7 +1496,7 @@ input[type=range]::-moz-range-thumb{
         <p id="detailText" class="detail-text"></p>
         <div id="detailSpoiler" class="spoiler hidden"></div>
         <div class="actions">
-          <a id="detailSource" class="action primary" target="_blank" rel="noopener noreferrer">Open source ↗</a>
+          <a id="detailSource" class="action primary" target="_blank" rel="noopener noreferrer">Inspect source ↗</a>
           <button id="centerStop" class="action" type="button">Center map</button>
         </div>
       </div>
@@ -699,9 +1518,9 @@ input[type=range]::-moz-range-thumb{
       </div>
 
       <div class="timeline-actions">
-        <button id="fitCampaign" class="small-btn" type="button">Fit campaign</button>
-        <button id="toggleContext" class="small-btn" type="button">Hide context</button>
-        <button id="fitWorld" class="small-btn" type="button">Caribbean view</button>
+        <button id="fitCampaign" class="small-btn" type="button">Frame operation</button>
+        <button id="toggleContext" class="small-btn" type="button">Hide Spanish ports</button>
+        <button id="fitWorld" class="small-btn" type="button">West Indies</button>
       </div>
     </div>
   </main>
@@ -737,7 +1556,7 @@ const campaigns = [
     year:"1668",
     name:"Cuba → Porto Bello",
     short:"First great command",
-    color:"#9a7138",
+    color:"#d5a84f",
     overview:"Morgan’s reputation-making year: an inland Cuban raid followed by the audacious attack on one of Spain’s most important Caribbean ports.",
     stops:[
       {
@@ -762,8 +1581,8 @@ const campaigns = [
         date:"Mar–Apr 1668", place:"Puerto del Príncipe", region:"Camagüey, Cuba",
         lat:21.383, lon:-77.916, kind:"raid",
         title:"The Cuban raid",
-        text:"An inland cattle-and-hide center rather than a treasure port. The expedition shows Morgan’s ability to keep a large, unruly force moving and supplied away from the ships.",
-        spoiler:"The haul disappoints some of the buccaneers, but the operation gives Morgan confidence to aim much higher.",
+        text:"An inland cattle-and-hide center rather than a treasure port. Morgan’s force occupies the town, confines residents, and searches the surrounding country for wealth and food.",
+        spoiler:"The haul disappoints some of the buccaneers, but the operation proves Morgan can keep a large, unruly land force together—and gives him confidence to aim much higher.",
         image:IMG.puertoPrincipe, source:sources.puertoPrincipe, imageType:"later book illustration",
         art:"Puerto del Príncipe being sacked in 1668",
       },
@@ -771,8 +1590,8 @@ const campaigns = [
         date:"Jul 1668", place:"Portobelo", region:"Panama",
         lat:9.554, lon:-79.655, kind:"raid",
         title:"A fortress town taken from behind",
-        text:"Portobelo sits on the silver route across the Isthmus. Its forts face the sea — so Morgan approaches in small craft, lands outside the defenses, and attacks from the landward side.",
-        spoiler:"The capture and ransom of Portobelo makes Morgan a Caribbean celebrity and produces an enormous return for the expedition.",
+        text:"Portobelo sits on the silver route across the Isthmus. Its forts face the sea, so Morgan approaches in small craft, lands outside the defenses, and attacks from the landward side before holding the town for ransom.",
+        spoiler:"The victory makes Morgan a Caribbean celebrity. Exquemelin’s later claim that captive clergy were forced ahead of scaling ladders is vivid, famous, and among the allegations Morgan contested.",
         image:IMG.portoBello, source:sources.portoBello, imageType:"Howard Pyle, 1888",
         art:"Morgan at Porto Bello",
       },
@@ -792,7 +1611,7 @@ const campaigns = [
     year:"1668–69",
     name:"Lake Maracaibo",
     short:"The fireship campaign",
-    color:"#46614c",
+    color:"#48a098",
     overview:"A campaign that begins with disaster, turns into weeks of inland plunder, and ends with one of Morgan’s best-known naval tricks.",
     stops:[
       {
@@ -805,11 +1624,11 @@ const campaigns = [
         art:"Port Royal and Kingston Harbour",
       },
       {
-        date:"Jan 1669", place:"Île-à-Vache", region:"off Hispaniola",
+        date:"2 Jan 1669", place:"Île-à-Vache", region:"off Hispaniola",
         lat:18.064, lon:-73.641, kind:"rendezvous",
         title:"Rendezvous — then catastrophe",
         text:"This small island is a natural gathering point: remote enough to organize a fleet and close to hunting grounds and Caribbean sea lanes.",
-        spoiler:"Morgan’s flagship Oxford explodes during a gathering of captains. Hundreds die; Morgan survives. The loss helps make Cartagena unrealistic.",
+        spoiler:"Morgan’s flagship Oxford explodes during a gathering of captains. More than two hundred people die; Morgan survives. The loss helps make Cartagena unrealistic.",
         image:null, source:sources.maracaibo, imageType:"rendezvous",
         art:"Fleet rendezvous off Hispaniola",
       },
@@ -826,8 +1645,8 @@ const campaigns = [
         date:"Apr 1669", place:"Maracaibo", region:"Venezuela",
         lat:10.654, lon:-71.640, kind:"raid",
         title:"An emptied city",
-        text:"News outruns the fleet. Much of the population has fled, so the privateers search the surrounding country as well as the town.",
-        spoiler:"Morgan spends weeks extracting valuables and information from captives before pushing farther south across the lake.",
+        text:"News outruns the fleet. Much of the population has fled, so the privateers search the surrounding country as well as the town, taking prisoners to locate hidden wealth.",
+        spoiler:"Accounts describe weeks of torture, threats, imprisonment, and ransom-taking before Morgan pushes farther south across the lake.",
         image:IMG.maracaibo, source:sources.maracaibo, imageType:"historic / later engraving",
         art:"Morgan’s escape from Maracaibo",
       },
@@ -835,8 +1654,8 @@ const campaigns = [
         date:"1669", place:"Gibraltar", region:"Lake Maracaibo",
         lat:10.142, lon:-71.227, kind:"raid",
         title:"Deep inside the lake",
-        text:"The raid reaches the southern side of Lake Maracaibo. The geography matters: every mile south increases the danger of being trapped at the narrow exit.",
-        spoiler:"When Morgan turns back, a Spanish naval squadron and a rearmed fort are waiting at the mouth.",
+        text:"The raid reaches the southern side of Lake Maracaibo. Gibraltar is occupied and its residents subjected to the same machinery of interrogation, ransom, and plunder.",
+        spoiler:"Every mile south also increases the danger of entrapment. When Morgan turns back, a Spanish naval squadron and a rearmed fort are waiting at the mouth.",
         image:IMG.gibraltar, source:sources.maracaibo, imageType:"later illustration",
         art:"Morgan’s attack on Gibraltar",
       },
@@ -865,7 +1684,7 @@ const campaigns = [
     year:"1670–71",
     name:"Panama",
     short:"The great isthmus campaign",
-    color:"#984b31",
+    color:"#d45e43",
     overview:"Morgan’s largest expedition: assemble in the Caribbean, seize a stepping-stone island and a river fort, then cross the isthmus toward the Pacific.",
     stops:[
       {
@@ -899,8 +1718,8 @@ const campaigns = [
         date:"Dec 1670", place:"Fort San Lorenzo", region:"Chagres River",
         lat:9.306, lon:-80.001, kind:"fort",
         title:"The river gate",
-        text:"This fort guards the Chagres — the water route that penetrates deep into the isthmus. Taking it converts a Spanish defensive chokepoint into Morgan’s supply and retreat base.",
-        spoiler:"An advance force captures the fort after a hard fight. Morgan arrives, repairs the position, and gathers boats and canoes for the river ascent.",
+        text:"This fort guards the Chagres—the water route into the isthmus. Morgan sends roughly four hundred men ahead under Joseph Bradley to take it before the main fleet arrives.",
+        spoiler:"Bradley’s first assault is repulsed with heavy losses; a later attack captures the fort. Bradley dies of his wounds, and Morgan converts the position into his supply and retreat base.",
         image:IMG.sanLorenzo, source:sources.sanLorenzo, imageType:"historic plan",
         art:"Chagres and Fort San Lorenzo",
       },
@@ -923,20 +1742,29 @@ const campaigns = [
         art:"Map of the country and city of Panama",
       },
       {
-        date:"Jan 1671", place:"Panamá Viejo", region:"Pacific coast",
-        lat:9.005, lon:-79.486, kind:"battle",
-        title:"The Pacific prize",
-        text:"Panama City is the endpoint of the whole trans-isthmian system: silver and goods from the Pacific world converge here before crossing toward Portobelo and the Atlantic.",
-        spoiler:"Morgan defeats the defenders outside the city and occupies Panama. Fire destroys much of the settlement; responsibility for the blaze is disputed in later accounts.",
+        date:"28 Jan 1671", place:"Mata Asnillos", region:"outside Panama City",
+        lat:9.035, lon:-79.515, kind:"battle",
+        title:"Battle on the savanna",
+        text:"After the river and jungle crossing, Morgan’s exhausted force meets militia, cavalry, and Indigenous auxiliaries on open ground outside Panama.",
+        spoiler:"Morgan avoids marshy ground and uses experienced musketeers against the cavalry. A Spanish attempt to drive cattle into the privateer line fails; the defenders break.",
         image:IMG.panamaBattle, source:sources.panama, imageType:"Exquemelin-era engraving",
         art:"The battle before the city of Panama",
       },
       {
+        date:"28 Jan–Feb 1671", place:"Panamá Viejo", region:"Pacific coast",
+        lat:9.005, lon:-79.486, kind:"raid",
+        title:"Occupation, plunder, and fire",
+        text:"Panama is the Pacific hinge of Spain’s trans-isthmian system. Its occupation brings captivity, killing, forced searches, and weeks of plunder rather than the instant treasure Morgan’s army expected.",
+        spoiler:"Fire destroys much of the settlement. Spanish orders, privateer arson, and accidental spread have all been blamed; the surviving accounts do not settle responsibility cleanly.",
+        image:IMG.panamaLater, source:sources.panama, imageType:"later historical illustration",
+        art:"The burning of Panama by Henry Morgan",
+      },
+      {
         date:"1671", place:"Fort San Lorenzo", region:"Chagres River",
         lat:9.306, lon:-80.001, kind:"fort",
-        title:"Back across the isthmus",
-        text:"The campaign’s geography runs in reverse: survivors, prisoners, and plunder must all return to the Caribbean side through the Chagres corridor.",
-        spoiler:"Morgan returns to his fleet and eventually to Jamaica, but the political world has shifted: England and Spain have made peace.",
+        title:"Spoils, suspicion, and retreat",
+        text:"The campaign’s geography runs in reverse: privateers, prisoners, and plunder return through the Chagres corridor to a damaged fleet and a ruined fort.",
+        spoiler:"Individual shares disappoint many participants. Accusations that Morgan concealed wealth or abandoned men become part of his legend, though the most dramatic versions come through hostile testimony.",
         image:IMG.sanLorenzo, source:sources.sanLorenzo, imageType:"historic plan",
         art:"Chagres and Fort San Lorenzo",
       },
@@ -944,8 +1772,8 @@ const campaigns = [
         date:"1671", place:"Port Royal", region:"Jamaica",
         lat:17.937, lon:-76.841, kind:"base",
         title:"A triumph with consequences",
-        text:"Port Royal is again the closing point, but this return does not simply reset the cycle. Morgan’s raid has become a diplomatic problem.",
-        spoiler:"He is later sent to England, then returns knighted and eventually serves as lieutenant governor of Jamaica — the buccaneer becoming part of the colonial establishment.",
+        text:"Port Royal is again the closing point, but the Treaty of Madrid has ended the Anglo-Spanish war and recognized English Jamaica. The raid is now a diplomatic problem rather than another profitable reset.",
+        spoiler:"Modyford is recalled and Morgan is sent to England in 1672. He returns knighted in 1674 as lieutenant governor—the buccaneer absorbed into the colonial establishment.",
         image:IMG.portRoyal, source:sources.portRoyal, imageType:"17th-century chart",
         art:"Port Royal and Kingston Harbour",
       }
@@ -961,10 +1789,11 @@ const contextPlaces = [
   {name:"Veracruz", sub:"Atlantic outlet of New Spain", lat:19.1738, lon:-96.1342}
 ];
 
-const map = L.map("map",{zoomControl:true,worldCopyJump:true,minZoom:3,maxZoom:9})
+const map = L.map("map",{zoomControl:false,worldCopyJump:true,minZoom:3,maxZoom:9})
   .setView([16.1,-77.8],4);
+L.control.zoom({position:"topright"}).addTo(map);
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{
   maxZoom:9,
   attribution:"© OpenStreetMap"
 }).addTo(map);
@@ -1005,8 +1834,8 @@ $("morganPortrait").addEventListener("error",e=>handleImageError(e.target));
 $("detailImage").addEventListener("error",e=>handleImageError(e.target));
 
 function markerColor(stop,c){
-  if(stop.kind==="base" || stop.kind==="rendezvous") return "#2e4d56";
-  if(stop.kind==="fort") return "#6f5536";
+  if(stop.kind==="base" || stop.kind==="rendezvous") return "#4ea9b2";
+  if(stop.kind==="fort") return "#d5a84f";
   return c.color;
 }
 
@@ -1019,7 +1848,7 @@ function stopIcon(stop,i,c,active){
 }
 
 function routeStyle(c){
-  return {color:c.color,weight:3.5,opacity:.9,dashArray:"11 8",lineCap:"round",lineJoin:"round"};
+  return {color:c.color,weight:2.4,opacity:.94,dashArray:"14 5 2 5",lineCap:"butt",lineJoin:"round"};
 }
 
 function drawCampaign(){
@@ -1030,14 +1859,14 @@ function drawCampaign(){
 
   // create route segments; Panama gets a special river / land visual treatment
   const coords=c.stops.map(s=>[s.lat,s.lon]);
-  L.polyline(coords,{color:"#f5e5c1",weight:7,opacity:.30,lineCap:"round"}).addTo(routeLayer);
+  L.polyline(coords,{color:"#020b10",weight:6,opacity:.62,lineCap:"round"}).addTo(routeLayer);
   L.polyline(coords,routeStyle(c)).addTo(routeLayer);
 
   if(c.id==="panama"){
     const river=[[9.306,-80.001],[9.24,-79.94],[9.188,-79.865],[9.14,-79.77],[9.118,-79.690]];
-    L.polyline(river,{color:"#2e6670",weight:5,opacity:.45,lineCap:"round"}).addTo(routeLayer);
-    const overland=[[9.118,-79.690],[9.08,-79.61],[9.04,-79.55],[9.005,-79.486]];
-    L.polyline(overland,{color:"#735b35",weight:5,opacity:.32,dashArray:"3 7",lineCap:"round"}).addTo(routeLayer);
+    L.polyline(river,{color:"#58b8bf",weight:3.2,opacity:.88,lineCap:"round"}).addTo(routeLayer);
+    const overland=[[9.118,-79.690],[9.08,-79.61],[9.04,-79.55],[9.035,-79.515]];
+    L.polyline(overland,{color:"#d5a84f",weight:2.6,opacity:.86,dashArray:"2 7",lineCap:"round"}).addTo(routeLayer);
   }
 
   c.stops.forEach((s,i)=>{
@@ -1111,7 +1940,7 @@ function updateRange(){
   range.max=String(c.stops.length-1);
   range.value=String(stopIndex);
   const pct=c.stops.length>1 ? stopIndex/(c.stops.length-1)*100 : 0;
-  range.style.background=`linear-gradient(90deg,${c.color} 0%,${c.color} ${pct}%,rgba(91,69,42,.18) ${pct}%,rgba(91,69,42,.18) 100%)`;
+  range.style.background=`linear-gradient(90deg,${c.color} 0%,${c.color} ${pct}%,rgba(137,190,191,.16) ${pct}%,rgba(137,190,191,.16) 100%)`;
   $("rangeLabel").textContent=`${c.stops[stopIndex].place} · ${c.stops[stopIndex].region}`;
   $("rangeCount").textContent=`${stopIndex+1} / ${c.stops.length}`;
 }
@@ -1196,10 +2025,10 @@ $("toggleContext").addEventListener("click",()=>{
   contextVisible=!contextVisible;
   if(contextVisible){
     contextLayer.addTo(map);
-    $("toggleContext").textContent="Hide context";
+    $("toggleContext").textContent="Hide Spanish ports";
   }else{
     map.removeLayer(contextLayer);
-    $("toggleContext").textContent="Show context";
+    $("toggleContext").textContent="Show Spanish ports";
   }
 });
 
@@ -1225,6 +2054,22 @@ search.addEventListener("input",()=>{
     if(yes) shown++;
   });
   $("stopCount").textContent=`${shown} ${shown===1?"event":"events"}`;
+});
+
+const formatCoordinate = (lat,lng) => {
+  const latHem=lat<0?"S":"N", lngHem=lng<0?"W":"E";
+  const toParts=value=>{
+    const abs=Math.abs(value), degrees=Math.floor(abs), minutes=Math.floor((abs-degrees)*60);
+    return `${degrees}°${String(minutes).padStart(2,"0")}′`;
+  };
+  return `${toParts(lat)}${latHem} / ${toParts(lng)}${lngHem}`;
+};
+map.on("mousemove",event=>{
+  $("coordinateReadout").textContent=formatCoordinate(event.latlng.lat,event.latlng.lng);
+});
+map.on("mouseout",()=>{
+  const center=map.getCenter();
+  $("coordinateReadout").textContent=formatCoordinate(center.lat,center.lng);
 });
 
 document.addEventListener("keydown",e=>{

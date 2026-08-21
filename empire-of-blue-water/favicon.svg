@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Empire of Blue Water">
+  <rect width="32" height="32" rx="6" fill="#071b25"/>
+  <circle cx="16" cy="16" r="11.5" fill="none" stroke="#4ea9b2" stroke-width="1.15" opacity=".55"/>
+  <circle cx="16" cy="16" r="7.8" fill="none" stroke="#d5a84f" stroke-width="1.1"/>
+  <path d="M16 5.2 L17.7 14.1 L16 13.3 L14.3 14.1 Z" fill="#d45e43"/>
+  <path d="M16 26.8 L14.3 17.9 L16 18.7 L17.7 17.9 Z" fill="#4ea9b2"/>
+  <path d="M5.2 16 L14.1 14.3 L13.3 16 L14.1 17.7 Z" fill="#4ea9b2"/>
+  <path d="M26.8 16 L17.9 17.7 L18.7 16 L17.9 14.3 Z" fill="#d5a84f"/>
+  <circle cx="16" cy="16" r="2.4" fill="#edf5ef" stroke="#d5a84f" stroke-width="1"/>
+</svg>
