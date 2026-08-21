@@ -1,0 +1,1406 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="light" />
+  <meta name="description" content="An illustrated reading companion to Hampton Sides’s The Wide Wide Sea: John Webber’s pictures along the complete track of Cook’s third voyage, 1776–1780." />
+  <title>The Wide Wide Sea — Illustrated Reading Companion</title>
+
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://tile.openstreetmap.org">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <style>
+    :root{
+      --paper:#eee2c5;
+      --paper-light:#faf3df;
+      --paper-deep:#d7c49b;
+      --ink:#2c281f;
+      --muted:#71654f;
+      --faint:#9b8c70;
+      --rust:#9e492c;
+      --rust-dark:#6c2f20;
+      --green:#4e654d;
+      --green-dark:#344735;
+      --gold:#b58b48;
+      --line:rgba(70,57,38,.22);
+      --panel:rgba(249,241,219,.94);
+      --panel-solid:#f6edd6;
+      --shadow:0 18px 50px rgba(42,34,22,.20);
+      --shadow-soft:0 7px 22px rgba(42,34,22,.12);
+      --radius:18px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      font-family:ui-serif,Georgia,Cambria,"Times New Roman",serif;
+      color:var(--ink);
+      overflow:hidden;
+      background:#cfc5ab;
+    }
+
+    button,input{font:inherit}
+    button,a,.icon-btn,.small-btn,.action,.stop-card{touch-action:manipulation}
+    .sr-only{
+      position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+      overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+    }
+
+    .shell{
+      height:100vh;
+      display:grid;
+      grid-template-columns:390px minmax(0,1fr);
+    }
+
+    /* ---------- SIDEBAR ---------- */
+    .sidebar{
+      position:relative;
+      z-index:20;
+      min-width:0;
+      height:100vh;
+      overflow:auto;
+      padding:18px;
+      border-right:1px solid rgba(70,57,38,.28);
+      background:
+        radial-gradient(circle at 20% 3%,rgba(255,255,255,.42),transparent 30%),
+        linear-gradient(180deg,#f2e7ca 0%,#e9dab8 100%);
+      box-shadow:8px 0 30px rgba(48,39,26,.12);
+    }
+    .sidebar::before{
+      content:"";
+      pointer-events:none;
+      position:absolute;
+      inset:0;
+      opacity:.08;
+      background-image:
+        radial-gradient(circle at 20% 30%,#2d261d 0 .55px,transparent .7px),
+        radial-gradient(circle at 70% 60%,#2d261d 0 .45px,transparent .65px);
+      background-size:19px 19px,27px 27px;
+      mix-blend-mode:multiply;
+    }
+
+    .masthead{
+      position:relative;
+      padding:18px 18px 15px;
+      margin-bottom:14px;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:rgba(250,243,225,.79);
+      box-shadow:var(--shadow-soft);
+      overflow:hidden;
+    }
+    .masthead::after{
+      content:"";
+      position:absolute;
+      right:-22px;top:-30px;
+      width:140px;height:140px;border:1px solid rgba(158,73,44,.16);
+      border-radius:50%;
+      box-shadow:0 0 0 13px rgba(158,73,44,.035),0 0 0 28px rgba(158,73,44,.025);
+    }
+    .kicker{
+      position:relative;z-index:1;
+      display:flex;align-items:center;gap:9px;
+      margin:0 0 9px;
+      color:var(--rust);
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      font-size:11px;font-weight:800;
+    }
+    .kicker::before{content:"";width:28px;height:1px;background:var(--rust)}
+    h1{
+      position:relative;z-index:1;
+      margin:0;
+      font-size:31px;line-height:1.02;
+      letter-spacing:-.025em;
+      font-weight:700;
+    }
+    .deck{
+      position:relative;z-index:1;
+      margin:10px 0 0;
+      color:var(--muted);
+      font-size:14px;line-height:1.5;
+    }
+    .stats{
+      position:relative;z-index:1;
+      display:flex;gap:7px;flex-wrap:wrap;
+      margin-top:13px;
+    }
+    .chip{
+      display:inline-flex;align-items:center;gap:5px;
+      padding:5px 8px;
+      border:1px solid rgba(70,57,38,.15);
+      border-radius:999px;
+      color:#5b503e;
+      background:rgba(255,250,237,.68);
+      font-size:11px;
+    }
+
+    .book-maps{margin:0 0 14px}
+    .book-map-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .book-map{
+      appearance:none;width:100%;
+      display:grid;gap:7px;
+      text-align:left;color:inherit;
+      padding:6px;
+      border:1px solid rgba(70,57,38,.17);
+      border-radius:14px;
+      background:rgba(250,244,228,.77);
+      cursor:pointer;
+    }
+    .book-map img{
+      width:100%;height:82px;object-fit:cover;object-position:center 18%;
+      display:block;border-radius:9px;
+      border:1px solid rgba(70,57,38,.12);
+      filter:sepia(.18) contrast(.98);
+      background:#dfd0ab;
+    }
+    .book-map span{
+      display:block;padding:0 3px 2px;
+      font-size:11px;font-weight:700;line-height:1.25;
+    }
+    .book-map small{
+      display:block;padding:0 3px 2px;
+      color:var(--muted);font-size:10px;line-height:1.3;
+    }
+    .book-map:hover{
+      background:rgba(255,249,236,.96);
+      border-color:rgba(158,73,44,.33);
+    }
+    .book-map:focus{outline:none}
+    .book-map:focus-visible{outline:2px solid var(--rust);outline-offset:2px}
+
+    .map-viewer{
+      width:min(1100px,calc(100vw - 28px));
+      max-height:calc(100vh - 28px);
+      padding:0;border:1px solid rgba(70,57,38,.28);
+      border-radius:18px;background:#f6edd6;color:var(--ink);
+      box-shadow:var(--shadow);
+    }
+    .map-viewer::backdrop{background:rgba(42,34,22,.58)}
+    .map-viewer form{
+      display:grid;grid-template-rows:auto minmax(0,1fr) auto;
+      max-height:calc(100vh - 28px);
+    }
+    .map-viewer-bar{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      padding:12px 14px;border-bottom:1px solid var(--line);
+    }
+    .map-viewer-bar strong{font-size:14px;line-height:1.25}
+    .map-viewer img{
+      width:100%;height:auto;max-height:calc(100vh - 148px);
+      object-fit:contain;background:#efe4c4;display:block;
+    }
+    .map-viewer-credit{
+      margin:0;padding:10px 14px 12px;
+      color:var(--muted);font-size:11px;line-height:1.4;
+    }
+
+    .search-wrap{
+      position:sticky;
+      top:-1px;
+      z-index:50;
+      padding:5px 0 10px;
+      background:linear-gradient(180deg,#eee1c2 70%,rgba(238,225,194,0));
+    }
+    .search{
+      -webkit-appearance:none;appearance:none;
+      width:100%;
+      border:1px solid rgba(70,57,38,.22);
+      border-radius:13px;
+      padding:11px 12px;
+      outline:none;
+      color:var(--ink);
+      background:rgba(255,250,238,.86);
+      box-shadow:0 3px 12px rgba(53,43,29,.08);
+    }
+    .search:focus,.search:focus-visible{
+      border-color:rgba(158,73,44,.55);box-shadow:0 0 0 3px rgba(158,73,44,.10);
+    }
+
+    .ledger-title{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:12px;margin:1px 3px 9px;
+    }
+    .ledger-title span:first-child{
+      text-transform:uppercase;letter-spacing:.12em;font-size:11px;font-weight:800;color:var(--muted);
+    }
+    .ledger-title span:last-child{font-size:11px;color:var(--faint)}
+
+    .stop-list{display:grid;gap:9px;padding-bottom:16px}
+    .stop-card{
+      appearance:none;
+      width:100%;
+      display:grid;
+      grid-template-columns:76px minmax(0,1fr);
+      gap:11px;
+      text-align:left;
+      padding:8px;
+      border:1px solid rgba(70,57,38,.17);
+      border-radius:16px;
+      color:inherit;
+      background:rgba(250,244,228,.77);
+      box-shadow:0 4px 12px rgba(49,39,25,.055);
+      cursor:pointer;
+      transition:.18s ease;
+    }
+    .stop-card:hover{
+      transform:translateY(-1px);
+      background:rgba(255,249,236,.96);
+      border-color:rgba(158,73,44,.33);
+      box-shadow:0 7px 18px rgba(49,39,25,.09);
+    }
+    .stop-card:focus{outline:none}
+    .stop-card:focus-visible{
+      outline:2px solid var(--rust);
+      outline-offset:2px;
+    }
+    .stop-card.active{
+      border-color:rgba(158,73,44,.60);
+      background:#fff7e3;
+      box-shadow:0 0 0 2px rgba(158,73,44,.08),0 8px 22px rgba(49,39,25,.10);
+    }
+    .thumb{
+      position:relative;
+      width:76px;height:76px;border-radius:11px;overflow:hidden;
+      border:1px solid rgba(70,57,38,.15);
+      background:
+        linear-gradient(135deg,rgba(255,255,255,.25),rgba(76,57,30,.06)),
+        #dfd0ab;
+    }
+    .thumb img{
+      position:absolute;inset:0;z-index:1;
+      width:100%;height:100%;object-fit:cover;display:block;
+      filter:saturate(.74) contrast(.96) sepia(.12)
+    }
+    .thumb-fallback{
+      position:absolute;inset:0;
+      display:grid;place-items:center;
+      padding:7px;text-align:center;
+      color:#6b5a3d;
+      background:
+        linear-gradient(135deg,rgba(255,255,255,.22),rgba(87,64,34,.04)),
+        repeating-linear-gradient(0deg,transparent 0 7px,rgba(92,67,37,.035) 7px 8px);
+      font-size:9px;line-height:1.25;text-transform:uppercase;letter-spacing:.06em;
+    }
+    .thumb img.broken{display:none}
+    .num-badge{
+      position:absolute;top:5px;left:5px;z-index:2;
+      min-width:23px;height:23px;padding:0 5px;
+      display:grid;place-items:center;
+      border:1px solid rgba(255,255,255,.8);
+      border-radius:50%;
+      color:white;background:rgba(116,55,36,.92);
+      font:700 11px/1 ui-sans-serif,system-ui,sans-serif;
+      box-shadow:0 2px 5px rgba(0,0,0,.18);
+    }
+    .stop-meta{min-width:0;padding:2px 2px 1px}
+    .stop-date{
+      color:var(--rust);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.09em;
+      margin-bottom:4px;
+    }
+    .stop-place{
+      margin:0 0 4px;
+      font-size:15px;line-height:1.1;
+      overflow-wrap:anywhere;
+    }
+    .stop-art{
+      margin:0;
+      color:var(--muted);
+      font-size:11.5px;line-height:1.3;
+      display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+    }
+    .empty-state{
+      margin:2px 0 12px;
+      padding:16px 14px;
+      border:1px dashed rgba(70,57,38,.24);
+      border-radius:14px;
+      color:var(--muted);
+      background:rgba(255,250,238,.45);
+      font-size:13px;line-height:1.45;text-align:center;
+    }
+
+    .sidebar-note{
+      border-top:1px solid rgba(70,57,38,.18);
+      margin-top:2px;padding:13px 4px 7px;
+      color:var(--muted);
+      font-size:11.5px;line-height:1.45;
+    }
+
+    /* ---------- MAP ---------- */
+    .map-stage{
+      position:relative;min-width:0;height:100vh;overflow:hidden;background:#cfd3c3;
+    }
+    #map{position:absolute;inset:0;background:#d7d2be}
+    .leaflet-tile-pane{
+      filter:sepia(.38) saturate(.72) hue-rotate(345deg) brightness(1.03) contrast(.93);
+    }
+    .leaflet-container{font-family:ui-serif,Georgia,serif}
+    .leaflet-top.leaflet-right{top:118px;right:14px}
+    .leaflet-bottom{bottom:96px}
+    .leaflet-control-zoom{
+      border:1px solid rgba(70,57,38,.22)!important;
+      border-radius:12px!important;
+      overflow:hidden;
+      box-shadow:var(--shadow-soft)!important;
+    }
+    .leaflet-control-zoom a{
+      color:#463b2d !important;background:#f6ecd1 !important;border-color:rgba(70,57,38,.16)!important;
+    }
+    .leaflet-control-zoom a:hover{background:#fff6df!important}
+    .leaflet-control-attribution{
+      background:rgba(246,237,214,.72)!important;color:#6e634f!important;font-size:9px!important;
+    }
+    .leaflet-control-attribution a{color:#6d3f2b!important}
+
+    .map-wash{
+      position:absolute;inset:0;z-index:450;pointer-events:none;
+      box-shadow:inset 0 0 90px rgba(74,56,32,.26);
+      background:
+        radial-gradient(circle at 52% 48%,transparent 46%,rgba(239,221,181,.09) 75%,rgba(92,65,35,.13) 100%);
+      mix-blend-mode:multiply;
+    }
+
+    .map-head{
+      position:absolute;z-index:800;left:18px;top:18px;
+      max-width:440px;
+      padding:13px 15px;
+      border:1px solid rgba(70,57,38,.25);
+      border-radius:17px;
+      background:rgba(248,239,215,.91);
+      box-shadow:var(--shadow-soft);
+      backdrop-filter:blur(6px);
+    }
+    .map-head strong{display:block;font-size:14px;margin-bottom:3px}
+    .map-head span{display:block;color:var(--muted);font-size:11.5px;line-height:1.4}
+
+    .compass{
+      position:absolute;z-index:800;right:20px;top:18px;
+      width:94px;height:94px;border-radius:50%;
+      border:1px solid rgba(70,57,38,.28);
+      background:rgba(248,239,215,.88);
+      box-shadow:var(--shadow-soft);
+      display:grid;place-items:center;
+      backdrop-filter:blur(5px);
+    }
+    .compass svg{width:76px;height:76px}
+    .compass .ring{fill:none;stroke:#76533c;stroke-width:1}
+    .compass .major{fill:#8e442d}
+    .compass .minor{fill:#b18d54}
+    .compass text{fill:#684633;font:700 8px/1 ui-serif,Georgia,serif}
+
+    .legend{
+      position:absolute;z-index:800;right:18px;bottom:116px;
+      width:190px;
+      padding:11px 12px;
+      border:1px solid rgba(70,57,38,.24);
+      border-radius:15px;
+      background:rgba(248,239,215,.89);
+      box-shadow:var(--shadow-soft);
+      backdrop-filter:blur(5px);
+    }
+    .legend-title{margin:0 0 7px;text-transform:uppercase;letter-spacing:.11em;font-size:10px;color:#665944;font-weight:800}
+    .legend-row{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:10.5px;margin:6px 0}
+    .route-swatch{width:28px;border-top:2px solid #574c3f}
+    .route-swatch.after{border-top:1px dashed #756a5c}
+    .dot-swatch{width:12px;height:12px;border-radius:50%;border:3px solid var(--rust);background:#fbf0d3}
+    .art-swatch{width:12px;height:12px;border-radius:3px;background:var(--green);transform:rotate(45deg)}
+
+    /* ---------- DETAIL PANEL ---------- */
+    .detail{
+      position:absolute;z-index:850;
+      left:18px;bottom:105px;
+      width:min(455px,calc(100% - 36px));
+      display:grid;
+      grid-template-columns:150px minmax(0,1fr);
+      overflow:hidden;
+      border:1px solid rgba(70,57,38,.26);
+      border-radius:20px;
+      background:rgba(249,241,219,.95);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(8px);
+      transform:translateY(0);
+      transition:.22s ease;
+    }
+    .detail-media{
+      position:relative;
+      min-height:190px;
+      background:#d8c89f;
+      overflow:hidden;
+      border-right:1px solid rgba(70,57,38,.18);
+    }
+    .detail-media img{
+      position:absolute;inset:0;z-index:1;
+      width:100%;height:100%;min-height:190px;object-fit:cover;display:block;
+      filter:saturate(.78) contrast(.97) sepia(.10);
+    }
+    .detail-media .detail-fallback{
+      position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:15px;
+      color:#68583f;
+      background:
+        linear-gradient(145deg,rgba(255,255,255,.18),rgba(73,52,25,.05)),
+        repeating-linear-gradient(0deg,transparent 0 9px,rgba(71,50,25,.04) 9px 10px);
+      font-size:11px;text-transform:uppercase;letter-spacing:.08em;line-height:1.4;
+    }
+    .detail-media img.broken{display:none}
+
+    .detail-body{padding:14px 15px 13px;min-width:0}
+    .detail-kicker{
+      display:flex;align-items:center;gap:8px;
+      margin:0 0 5px;color:var(--rust);
+      font:800 10px/1.2 ui-sans-serif,system-ui,sans-serif;
+      text-transform:uppercase;letter-spacing:.10em;
+    }
+    .detail-title{margin:0 0 5px;font-size:20px;line-height:1.1;overflow-wrap:anywhere}
+    .detail-art{margin:0 0 9px;color:var(--green-dark);font-size:12px;line-height:1.35;font-style:italic}
+    .detail-text{margin:0 0 10px;color:var(--muted);font-size:12.5px;line-height:1.5;max-height:8.1em;overflow:auto}
+    .detail.no-image{grid-template-columns:minmax(0,1fr)}
+    .detail.no-image .detail-media{display:none}
+    .detail-actions{display:flex;gap:7px;flex-wrap:wrap}
+    .action{
+      display:inline-flex;align-items:center;justify-content:center;gap:6px;
+      padding:7px 10px;
+      border-radius:999px;border:1px solid rgba(70,57,38,.22);
+      background:#fff7e3;color:var(--ink);
+      text-decoration:none;font-size:10.5px;cursor:pointer;
+    }
+    .action.primary{background:var(--rust);border-color:var(--rust);color:#fff9ec}
+    .action:hover{filter:brightness(.98);transform:translateY(-1px)}
+    .icon-btn:focus,.small-btn:focus,.action:focus{outline:none}
+    .icon-btn:focus-visible,.small-btn:focus-visible,.action:focus-visible{
+      outline:2px solid var(--rust);outline-offset:2px;
+    }
+
+    /* ---------- TIMELINE ---------- */
+    .timeline{
+      position:absolute;z-index:900;left:18px;right:18px;bottom:18px;
+      height:72px;
+      display:grid;
+      grid-template-columns:auto minmax(120px,1fr) auto;
+      gap:13px;align-items:center;
+      padding:10px 12px;
+      border:1px solid rgba(70,57,38,.25);
+      border-radius:18px;
+      background:rgba(249,241,219,.94);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(8px);
+    }
+    .transport{display:flex;align-items:center;gap:6px}
+    .icon-btn{
+      width:38px;height:38px;border-radius:50%;
+      border:1px solid rgba(70,57,38,.22);
+      display:grid;place-items:center;
+      background:#fff7e5;color:#4d4030;cursor:pointer;
+      box-shadow:0 2px 7px rgba(44,35,22,.06);
+    }
+    .icon-btn.play{background:var(--rust);color:white;border-color:var(--rust)}
+    .icon-btn:hover{transform:translateY(-1px)}
+    .range-area{min-width:0}
+    .range-meta{display:flex;justify-content:space-between;gap:10px;margin-bottom:6px;color:var(--muted);font-size:10px}
+    .range-meta strong{color:var(--ink);font-size:11px}
+    input[type=range]{
+      width:100%;height:4px;appearance:none;border-radius:999px;background:linear-gradient(90deg,var(--rust) 0%,var(--rust) 0%,rgba(99,77,48,.18) 0%);
+      outline:none;accent-color:var(--rust);
+    }
+    input[type=range]::-webkit-slider-thumb{
+      appearance:none;width:18px;height:18px;border-radius:50%;
+      border:4px solid var(--rust);background:#fff7e1;box-shadow:0 1px 4px rgba(0,0,0,.22);cursor:pointer;
+    }
+    input[type=range]::-moz-range-track{height:4px;border:0;border-radius:999px;background:transparent}
+    input[type=range]::-moz-range-thumb{
+      width:12px;height:12px;border-radius:50%;border:4px solid var(--rust);background:#fff7e1;cursor:pointer;
+    }
+    input[type=range]:focus-visible{outline:2px solid var(--rust);outline-offset:4px}
+    .timeline-right{display:flex;gap:7px}
+    .small-btn{
+      border:1px solid rgba(70,57,38,.20);border-radius:999px;
+      padding:8px 10px;background:#fff7e3;color:var(--ink);cursor:pointer;font-size:10px;
+    }
+
+    /* ---------- MAP MARKERS ---------- */
+    .voyage-marker{
+      position:relative;
+      width:30px;height:30px;
+      border-radius:50%;
+      display:grid;place-items:center;
+      color:#fffaf0;
+      background:var(--rust);
+      border:2px solid #fff0cc;
+      box-shadow:0 0 0 2px rgba(100,48,31,.30),0 4px 10px rgba(40,28,17,.28);
+      font:800 11px/1 ui-sans-serif,system-ui,sans-serif;
+      transition:.15s ease;
+    }
+    .voyage-marker.current{
+      transform:scale(1.23);
+      background:var(--green-dark);
+      box-shadow:0 0 0 4px rgba(78,101,77,.17),0 5px 14px rgba(40,28,17,.32);
+    }
+    .voyage-marker.has-image::after{
+      content:"";
+      position:absolute;
+      right:-2px;bottom:-2px;
+      width:8px;height:8px;border-radius:2px;
+      background:var(--gold);
+      border:1px solid #fff0cc;
+      transform:rotate(45deg);
+    }
+    .leaflet-marker-icon,.leaflet-div-icon{background:none!important;border:0!important;overflow:visible!important}
+
+    .leaflet-popup-content-wrapper{
+      background:#fbf2da;
+      color:var(--ink);
+      border:1px solid rgba(70,57,38,.18);
+      border-radius:15px;
+      box-shadow:0 10px 28px rgba(44,33,20,.22);
+    }
+    .leaflet-popup-tip{background:#fbf2da}
+    .leaflet-popup-content{margin:11px 13px;width:230px!important}
+    .popup-date{color:var(--rust);font:800 9px/1.2 ui-sans-serif,system-ui,sans-serif;letter-spacing:.10em;text-transform:uppercase;margin-bottom:3px}
+    .popup-title{font-weight:700;font-size:15px;line-height:1.15;margin-bottom:4px}
+    .popup-art{font-size:10.5px;color:var(--green-dark);font-style:italic;line-height:1.35;margin-bottom:7px}
+    .popup-link{display:inline-block;text-decoration:none;color:#fff8ea;background:var(--rust);border-radius:999px;padding:6px 9px;font-size:9.5px}
+
+    .route-arrow{
+      color:#5e5245;
+      font:400 16px/1 Georgia,serif;
+      text-shadow:0 1px 0 rgba(250,243,223,.9);
+      opacity:.82;
+    }
+    .route-arrow span{display:block;width:18px;height:18px;text-align:center;transform-origin:50% 50%}
+    .event-marker{
+      width:16px;height:16px;
+      display:grid;place-items:center;
+      border:1px solid rgba(251,244,224,.95);
+      background:#5c5144;color:#fff8e8;
+      box-shadow:0 0 0 1px rgba(57,48,38,.38),0 2px 6px rgba(40,28,17,.22);
+      transform:rotate(45deg);
+      font:700 10px/1 ui-sans-serif,system-ui,sans-serif;
+    }
+    .event-marker span{transform:rotate(-45deg)}
+    .event-marker.rendezvous{background:var(--green-dark)}
+    .event-marker.death{background:#7b3027;border-radius:50%;transform:none}
+    .event-marker.death span{transform:none}
+    .event-marker.return{background:#756343}
+    .leaflet-tooltip.route-event-tip{
+      background:rgba(248,240,218,.94);color:#4d4337;
+      border:1px solid rgba(70,57,38,.18);
+      box-shadow:0 3px 10px rgba(44,33,20,.11);
+      font-size:10px;padding:4px 7px;white-space:nowrap
+    }
+    .leaflet-tooltip.route-event-tip::before{border-top-color:rgba(248,240,218,.94)}
+
+    .leaflet-tooltip.stop-tip{
+      background:#f9efd5;color:#4f4333;border:1px solid rgba(70,57,38,.20);
+      box-shadow:0 4px 12px rgba(44,33,20,.14);font-size:10px;padding:4px 7px
+    }
+    .leaflet-tooltip.stop-tip::before{border-top-color:#f9efd5}
+
+    @media (prefers-reduced-motion: reduce){
+      .stop-card,.action,.icon-btn,.small-btn,.detail{transition:none}
+      .stop-card:hover,.action:hover,.icon-btn:hover{transform:none}
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width:900px){
+      body{overflow:auto}
+      .shell{height:auto;min-height:100vh;grid-template-columns:1fr}
+      .sidebar{height:auto;max-height:none;border-right:0;border-bottom:1px solid rgba(70,57,38,.25)}
+      .map-stage{height:76vh;min-height:620px}
+      .search-wrap{position:relative;background:transparent;padding-top:0}
+      .stop-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .stop-card{grid-template-columns:68px minmax(0,1fr)}
+      .thumb{width:68px;height:68px}
+    }
+    @media (max-width:620px){
+      .sidebar{padding:12px}
+      .masthead{padding:15px}
+      h1{font-size:28px}
+      .stop-list{grid-template-columns:1fr}
+      .map-stage{height:82vh;min-height:670px}
+      .map-head{left:12px;top:12px;right:82px;max-width:none}
+      .compass{right:12px;top:12px;width:64px;height:64px}
+      .compass svg{width:52px;height:52px}
+      .leaflet-top.leaflet-right{top:84px;right:8px}
+      .leaflet-bottom{bottom:98px}
+      .legend{display:none}
+      .detail{
+        left:12px;right:12px;bottom:105px;width:auto;
+        grid-template-columns:105px minmax(0,1fr)
+      }
+      .detail-media,.detail-media img{min-height:175px}
+      .detail-body{padding:11px 12px}
+      .detail-title{font-size:17px}
+      .timeline{left:12px;right:12px;bottom:12px;grid-template-columns:auto minmax(0,1fr);height:79px}
+      .timeline-right{display:none}
+      .icon-btn{width:34px;height:34px}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <section class="masthead">
+        <div class="kicker">A reading companion</div>
+        <h1>The Wide Wide Sea</h1>
+        <p class="deck">
+          Places and pictures to keep beside Hampton Sides’s account of Cook’s last voyage.
+          The ship track runs from Plymouth to England; each numbered landfall pairs that stretch of the story with a Webber image.
+        </p>
+        <div class="stats">
+          <span class="chip">14 illustrated stops</span>
+          <span class="chip">Plymouth to England</span>
+          <span class="chip">John Webber + voyage engravings</span>
+        </div>
+      </section>
+
+      <section class="book-maps" aria-label="Maps from the book">
+        <div class="ledger-title">
+          <span>Maps from the book</span>
+          <span>Jeffrey L. Ward</span>
+        </div>
+        <div class="book-map-row">
+          <button
+            type="button"
+            class="book-map"
+            data-src="TheWideWideSea_Map1.jpg"
+            data-caption="Cook’s third voyage, 1776–1780"
+          >
+            <img src="TheWideWideSea_Map1.jpg" alt="" />
+            <span>The full voyage</span>
+            <small>World route, with Society Islands inset</small>
+          </button>
+          <button
+            type="button"
+            class="book-map"
+            data-src="TheWideWideSea_Map2.jpg"
+            data-caption="Northwest Passage, 1778, and the Hawaiian Islands"
+          >
+            <img src="TheWideWideSea_Map2.jpg" alt="" />
+            <span>North Pacific &amp; Hawaiʻi</span>
+            <small>The ice, then the return to the islands</small>
+          </button>
+        </div>
+      </section>
+
+      <div class="search-wrap">
+        <label class="sr-only" for="search">Search a place, person, or episode</label>
+        <input id="search" class="search" type="search" placeholder="Search a place, person, or episode…" autocomplete="off" />
+      </div>
+
+      <div class="ledger-title">
+        <span>Along the book</span>
+        <span id="visibleCount">14 stops</span>
+      </div>
+      <div id="stopList" class="stop-list"></div>
+      <p id="emptyState" class="empty-state" hidden>No matching landfalls. Try Mai, Nootka, makahiki, or an artwork title.</p>
+
+      <div class="sidebar-note">
+        Made as a visual companion to Hampton Sides’s <em>The Wide Wide Sea</em>.
+        The fine line follows the voyage’s principal turns rather than every logged position; the dashed section begins after Cook’s death.
+        Artwork titles keep period spellings such as <em>Owyhee</em>, <em>Otaheite</em>, and <em>Kamtschatka</em>;
+        map labels use modern names where practical. Some oils were finished in London years after the sketches.
+      </div>
+    </aside>
+
+    <main class="map-stage">
+      <div id="map"></div>
+      <div class="map-wash"></div>
+
+      <div class="map-head">
+        <strong>Cook’s third voyage, 1776–1780</strong>
+        <span>The full outward and homeward track, with key events and illustrated landfalls. Click a number or play the reading timeline.</span>
+      </div>
+
+      <div class="compass" aria-hidden="true">
+        <svg viewBox="0 0 100 100">
+          <circle class="ring" cx="50" cy="50" r="44"/>
+          <circle class="ring" cx="50" cy="50" r="34" opacity=".45"/>
+          <path class="major" d="M50 7 L56 45 L50 39 L44 45 Z"/>
+          <path class="minor" d="M93 50 L55 56 L61 50 L55 44 Z"/>
+          <path class="major" d="M50 93 L44 55 L50 61 L56 55 Z"/>
+          <path class="minor" d="M7 50 L45 44 L39 50 L45 56 Z"/>
+          <circle cx="50" cy="50" r="6" fill="#efe0b8" stroke="#7b533a" stroke-width="1"/>
+          <text x="50" y="16" text-anchor="middle">N</text>
+          <text x="84" y="53" text-anchor="middle">E</text>
+          <text x="50" y="89" text-anchor="middle">S</text>
+          <text x="16" y="53" text-anchor="middle">W</text>
+        </svg>
+      </div>
+
+      <div class="legend">
+        <div class="legend-title">Legend</div>
+        <div class="legend-row"><span class="route-swatch"></span><span>Cook’s route</span></div>
+        <div class="legend-row"><span class="route-swatch after"></span><span>Route after Cook’s death</span></div>
+        <div class="legend-row"><span class="dot-swatch"></span><span>Illustrated landfall</span></div>
+        <div class="legend-row"><span class="art-swatch"></span><span>Thumbnail available</span></div>
+      </div>
+
+      <section id="detail" class="detail" aria-live="polite">
+        <div class="detail-media">
+          <img id="detailImage" alt="" decoding="async" referrerpolicy="no-referrer" />
+          <div id="detailFallback" class="detail-fallback">Voyage illustration</div>
+        </div>
+        <div class="detail-body">
+          <div id="detailKicker" class="detail-kicker"></div>
+          <h2 id="detailTitle" class="detail-title"></h2>
+          <p id="detailArt" class="detail-art"></p>
+          <p id="detailText" class="detail-text"></p>
+          <div class="detail-actions">
+            <a id="detailLink" class="action primary" target="_blank" rel="noopener noreferrer">Open illustration ↗</a>
+            <button id="fitStop" class="action" type="button">Center map</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="timeline">
+        <div class="transport">
+          <button id="prev" class="icon-btn" type="button" title="Previous stop" aria-label="Previous stop">‹</button>
+          <button id="play" class="icon-btn play" type="button" title="Play route" aria-label="Play route" aria-pressed="false">▶</button>
+          <button id="next" class="icon-btn" type="button" title="Next stop" aria-label="Next stop">›</button>
+        </div>
+
+        <div class="range-area">
+          <div class="range-meta">
+            <strong id="rangePlace">Christmas Harbour · Kerguelen</strong>
+            <span id="rangeIndex">1 / 14</span>
+          </div>
+          <input id="range" type="range" min="0" max="13" value="0" step="1" aria-label="Voyage timeline" />
+        </div>
+
+        <div class="timeline-right">
+          <button id="fitAll" class="small-btn" type="button">Full route</button>
+          <button id="toggleRoute" class="small-btn" type="button" aria-pressed="true">Hide route</button>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <dialog id="mapViewer" class="map-viewer" aria-labelledby="mapViewerTitle">
+    <form method="dialog">
+      <div class="map-viewer-bar">
+        <strong id="mapViewerTitle">Map from the book</strong>
+        <button class="small-btn" type="submit">Close</button>
+      </div>
+      <img id="mapViewerImage" alt="" />
+      <p class="map-viewer-credit">Map by Jeffrey L. Ward, from Hampton Sides’s <em>The Wide Wide Sea</em>.</p>
+    </form>
+  </dialog>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <script>
+    const stops = [
+      {
+        n:1, date:"Dec 1776", place:"Christmas Harbour", region:"Kerguelen Islands",
+        lat:-49.35, lon:69.75,
+        art:"A View of Christmas Harbour, in Kerguelen's Land",
+        type:"engraving after voyage drawing",
+        note:"A treeless southern anchorage after the Cape, before the long run to the Pacific. Hold this for the voyage’s first true loneliness — Europe gone, the island world not yet begun.",
+        link:"https://www.rmg.co.uk/collections/objects/rmgc-object-154064",
+        image:"https://upload.wikimedia.org/wikipedia/commons/b/bf/Webber_Cook_Christmas_Harbour_Kerguelen.JPG"
+      },
+      {
+        n:2, date:"Jan 1777", place:"Adventure Bay", region:"Tasmania",
+        lat:-43.35, lon:147.32,
+        art:"An Opossum of Van Diemen's Land",
+        type:"engraving after Webber",
+        note:"Webber’s opossum is the scientific voyage in one plate. On the same beach the ships meet Palawa people: a short, wary encounter the natural-history image does not show.",
+        link:"https://www.rmg.co.uk/collections/objects/rmgc-object-154068",
+        image:"https://commons.wikimedia.org/wiki/Special:FilePath/Cartes%20et%20figures%20du%20troisi%C3%A8me%20voyage%20de%20Cook%2C%201785%20Un%20opossum%20de%20la%20terre%20Van-Diemen%20%2819547198136%29.jpg?width=900"
+      },
+      {
+        n:3, date:"Feb 1777", place:"Ship Cove / Meretoto", region:"New Zealand",
+        lat:-41.081, lon:174.267,
+        art:"Captain Cook in Ship Cove, Queen Charlotte Sound",
+        type:"watercolour / later painted versions",
+        note:"Tents, boats, and the ships tucked into Meretoto — ordinary expedition life. Cook is also back in a charged place: Māori remember the Grass Cove killings from the previous voyage, and so do his men.",
+        link:"https://www.rmg.co.uk/collections/objects/rmgc-object-208085",
+        image:"https://upload.wikimedia.org/wikipedia/commons/f/f1/John_Webber_-_Ship_Cove%2C_Queen_Charlotte_Sound_-_Google_Art_Project.jpg"
+      },
+      {
+        n:4, date:"May 1777", place:"Nomuka (Anamooka)", region:"Tonga",
+        lat:-20.254, lon:-174.803,
+        art:"A View at Anamooka",
+        type:"engraving after Webber",
+        note:"Water, wood, food, and barter: the voyage as work. Nomuka opens the long Tongan stay, where hospitality and Cook’s impatience start to pull against each other.",
+        link:"https://www.rmg.co.uk/collections/objects/rmgc-object-154073",
+        image:"https://prints.rmg.co.uk/cdn/shop/files/pw6436_1024x1024.jpg?v=1774457678"
+      },
+      {
+        n:5, date:"Jun–Jul 1777", place:"Tongatapu", region:"Tonga",
+        lat:-21.178, lon:-175.198,
+        art:"Poulaho, King of the Friendly Islands",
+        type:"engraving after Webber",
+        note:"Poulaho (Paulaho) engraved as king of the ‘Friendly Islands,’ a European rank laid over Tongan title. The weeks on Tongatapu are the deep sojourn among chiefs — ceremony on the beach, a harder commander on the ships.",
+        link:"https://www.rmg.co.uk/collections/objects/rmgc-object-154081",
+        image:"https://co3-api-mediastorage.s3.ap-southeast-2.amazonaws.com/626354/preview"
+      },
+      {
+        n:6, date:"Aug–Sep 1777", place:"Matavai Bay", region:"Tahiti",
+        lat:-17.493, lon:-149.493,
+        art:"A Young Woman of Otaheite, Dancing",
+        type:"engraving after Webber",
+        note:"A dancing woman of ‘Otaheite,’ the Pacific Europe had already invented. Cook knew this bay; the third visit is where the pretty print and the actual voyage begin to come apart.",
+        link:"https://www.rmg.co.uk/collections/objects/rmgc-object-154096",
+        image:"https://a.1stdibscdn.com/john-webber-prints-works-on-paper-a-young-woman-of-otaheite-dancing-tahiti-1784-captain-cooks-voyage-by-webber-for-sale/a_7803/1713399716842/John_Webber_A_Young_Woman_of_Otaheite_Dancing_Tahiti__master.jpg?width=768"
+      },
+      {
+        n:7, date:"Oct–Nov 1777", place:"Fare, Huahine", region:"Society Islands",
+        lat:-16.715, lon:-151.033,
+        art:"A View of Huaheine",
+        type:"engraving after Webber",
+        note:"This view belongs to Mai (Omai), the Society Islander taken to Britain on Cook’s second voyage and brought home here. The house built for him is in the picture’s world: a homecoming that is generous, theatrical, and not the simple success London had imagined.",
+        link:"https://www.rmg.co.uk/collections/objects/rmgc-object-154097",
+        image:"https://collections.rmg.co.uk/media/3/353/668/s0353.jpg"
+      },
+      {
+        n:8, date:"Nov–Dec 1777", place:"Raʻiatea", region:"Society Islands",
+        lat:-16.833, lon:-151.433,
+        art:"Poedua [Poetua], daughter of Oreo",
+        type:"oil portrait, 1785, from voyage study",
+        note:"A calm 1785 oil of Poetua, daughter of Oreo, finished in London from a voyage study. She sat while Cook held her relatives hostage over deserters — the gap between the beauty of the record and how coercive the stop had become.",
+        link:"https://collections.tepapa.govt.nz/object/1130277",
+        image:"https://media.tepapa.govt.nz/collection/910829/preview"
+      },
+      {
+        n:9, date:"Jan 1778", place:"Kauaʻi", region:"Hawaiian Islands",
+        lat:22.05, lon:-159.50,
+        art:"A Morai, in Atooi",
+        type:"engraving after Webber",
+        note:"A heiau at Waimea, printed as a ‘morai, in Atooi’: among the first European pictures of Hawaiian sacred ground. This is first contact, January 1778 — brief, astonished, and over before anyone aboard can know what Hawaiʻi will come to mean.",
+        link:"https://www.rmg.co.uk/collections/objects/rmgc-object-154098",
+        image:"https://collections.rmg.co.uk/media/3/392/125/s0783.jpg"
+      },
+      {
+        n:10, date:"Mar–Apr 1778", place:"Nootka Sound / Yuquot", region:"Vancouver Island",
+        lat:49.596, lon:-126.617,
+        art:"'Resolution' and 'Discovery' in Ship Cove, Nootka Sound",
+        type:"pen, ink & watercolour",
+        note:"The ships in a tight, forested cove at Yuquot, in Mowachaht waters. The voyage looks northern at last: Nuu-chah-nulth canoes, heavy timber, and a people already prepared to drive a hard trade.",
+        link:"https://www.rmg.co.uk/collections/objects/rmgc-object-204120",
+        image:"https://collections.rmg.co.uk/media/2/823/194/pt2959.jpg"
+      },
+      {
+        n:11, date:"May 1778", place:"Prince William Sound", region:"Alaska",
+        lat:60.75, lon:-147.00,
+        art:"A View of Snug Corner Cove, in Prince William's Sound",
+        type:"engraving after Webber",
+        note:"Snug Corner Cove shrinks the expedition against snow and rock. Use it for the Northwest Passage hunt, when Cook is looking for a way through and the coast keeps answering with geography instead of a strait.",
+        link:"https://www.rmg.co.uk/collections/objects/rmgc-object-154108",
+        image:"https://gcp-la8-storage-cdn.lot-art.com/public/upl/54/John-Webber-View-of-Snug-Corner-Cove-Prince-William-Sound-Alaska-Large-Folio-Engraving_69d73c54ef10d-full-79552000_1775713368-69d73c58c2389.jpg"
+      },
+      {
+        n:12, date:"Oct 1778", place:"Unalaska", region:"Aleutian Islands",
+        lat:53.873, lon:-166.536,
+        art:"Natives of Oonalashka, and their Habitations",
+        type:"engraving after Webber",
+        note:"Unangan people and dwellings after the ice had closed the north. The second Unalaska stay is also a Russian meeting — proof that this ‘unknown’ ocean already had other empires on it.",
+        link:"https://www.rmg.co.uk/collections/objects/rmgc-object-154122",
+        image:"https://commons.wikimedia.org/wiki/Special:FilePath/Natives%20of%20Oonalashka%2C%20and%20their%20habitations.%20J.%20Webber%20del.%20J.%20Hall%20%26%20S.%20Middiman%20sc.%20%28London%2C%20G.%20Nicol%20and%20T.%20Cadell%2C%201785%29%20%28IA%20dr%20natives-of-oonalashka-and-their-habitations-j-webber-del-j-hall-s-m-00884015%29.jpg?width=960"
+      },
+      {
+        n:13, date:"Jan–Feb 1779", place:"Kealakekua Bay", region:"Hawaiʻi",
+        lat:19.480, lon:-155.920,
+        art:"Tereoboo, King of Owyhee, bringing Presents to Capt Cook",
+        type:"engraving after Webber",
+        note:"Kalaniʻōpuʻu (Tereoboo in the print) bringing gifts into Kealakekua at the height of makahiki. Hold this for the welcome, not the death: the ships leave, return with a sprung mast, a cutter goes missing, and only then does the bay turn.",
+        link:"https://www.rmg.co.uk/collections/objects/rmgc-object-154128",
+        image:"https://collections.rmg.co.uk/media/3/300/148/l9618.jpg"
+      },
+      {
+        n:14, date:"Apr–Jun 1779", place:"St Peter & St Paul", region:"Kamchatka",
+        lat:53.017, lon:158.650,
+        art:"A View of the Town and Harbour of St Peter and St Paul, in Kamtschatka",
+        type:"engraving after Webber",
+        note:"Petropavlovsk after Cook is dead: ships at anchor, a volcanic shore, a Russian town. Charles Clerke has the command and not much life left; the picture is aftermath, before one more futile run at the ice.",
+        link:"https://www.rmg.co.uk/collections/objects/rmgc-object-154146",
+        image:"https://collections.rmg.co.uk/media/544/769/a1085.jpg"
+      }
+    ];
+
+    // A readable overview of the complete voyage. Longitudes west of the
+    // date line are unwrapped into one continuous, Pacific-facing track.
+    const voyagePoints = [
+      {lat:50.37, lng:-4.14, key:"departure"},
+      {lat:42.0, lng:-12.0},
+      {lat:28.29, lng:-16.63, arrow:true},             // Tenerife
+      {lat:15.10, lng:-23.55},                         // Cape Verde
+      {lat:-6.0, lng:-25.0},
+      {lat:-27.0, lng:-17.0, arrow:true},
+      {lat:-33.92, lng:18.42, key:"rendezvous"},      // Cape Town
+      {lat:-39.0, lng:42.0},
+      {lat:-49.35, lng:69.75, arrow:true},             // Kerguelen
+      {lat:-46.0, lng:108.0},
+      {lat:-43.35, lng:147.32},                        // Tasmania
+      {lat:-41.08, lng:174.27, arrow:true},            // Ship Cove
+      {lat:-21.18, lng:184.80},                        // Tonga
+      {lat:-17.49, lng:210.51},                        // Tahiti
+      {lat:-16.72, lng:208.97, arrow:true},            // Huahine
+      {lat:-16.83, lng:208.57},                        // Raʻiatea
+      {lat:1.87, lng:202.60},                          // Kiritimati
+      {lat:22.05, lng:200.50, arrow:true},             // Kauaʻi
+      {lat:43.0, lng:235.0},                           // North American coast
+      {lat:49.60, lng:233.38},                         // Nootka Sound
+      {lat:60.75, lng:213.00, arrow:true},             // Prince William Sound
+      {lat:61.10, lng:208.50},                         // Cook Inlet
+      {lat:53.87, lng:193.46},                         // Unalaska
+      {lat:64.50, lng:197.00},                         // Norton Sound
+      {lat:66.10, lng:190.00},                         // Bering Strait
+      {lat:70.70, lng:184.00, arrow:true},             // Arctic ice
+      {lat:66.10, lng:190.00},
+      {lat:53.87, lng:193.46},                         // Unalaska, return
+      {lat:20.85, lng:203.70},                         // Maui
+      {lat:19.48, lng:204.08, key:"cook-death"},      // Kealakekua Bay
+      {lat:34.0, lng:182.0, arrow:true},
+      {lat:53.02, lng:158.65},                         // Petropavlovsk
+      {lat:62.0, lng:171.0},
+      {lat:66.10, lng:190.00},
+      {lat:70.55, lng:184.50, arrow:true},             // second ice attempt
+      {lat:62.0, lng:171.0},
+      {lat:53.02, lng:158.65, key:"clerke-death"},
+      {lat:24.78, lng:141.32, arrow:true},             // Iwo Jima
+      {lat:22.20, lng:113.54},                         // Macau
+      {lat:-6.0, lng:105.80},                          // Sunda Strait
+      {lat:-24.0, lng:72.0, arrow:true},
+      {lat:-33.92, lng:18.42},                         // Cape Town
+      {lat:-11.0, lng:-4.0},
+      {lat:15.0, lng:-21.0, arrow:true},
+      {lat:42.0, lng:-24.0},
+      {lat:58.96, lng:-3.00},                          // Stromness
+      {lat:51.46, lng:0.81, key:"return"}             // The Nore
+    ];
+
+    const routeMilestones = [
+      {
+        key:"departure", kind:"departure", lat:50.37, lng:-4.14,
+        label:"Plymouth · voyage begins", title:"Plymouth — 12 July 1776",
+        text:"Resolution sails first; Discovery follows on 1 August.",
+        direction:"bottom", tooltipOffset:[0,8]
+      },
+      {
+        key:"rendezvous", kind:"rendezvous", lat:-33.92, lng:18.42,
+        label:"Cape Town · ships reunite", title:"Cape Town — 10 November 1776",
+        text:"Discovery catches up with Resolution, which had arrived on 18 October."
+      },
+      {
+        key:"cook-death", kind:"death", lat:19.48, lng:204.08,
+        label:"Cook dies · 14 Feb 1779", title:"Kealakekua Bay — 14 February 1779",
+        text:"Cook and four marines are killed during the confrontation on shore."
+      },
+      {
+        key:"clerke-death", kind:"death", lat:53.02, lng:158.65,
+        label:"Clerke dies · 22 Aug 1779", title:"Off Kamchatka — 22 August 1779",
+        text:"Charles Clerke dies after the expedition’s second failed northern attempt."
+      },
+      {
+        key:"return", kind:"return", lat:51.46, lng:0.81,
+        label:"England · voyage ends", title:"The Nore — 4 October 1780",
+        text:"Resolution and Discovery reach England after more than four years away."
+      }
+    ];
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    }[char]));
+
+    const voyageLon = (lon) => lon < -100 ? lon + 360 : lon;
+    const stopLatLng = (stop) => [stop.lat, voyageLon(stop.lon)];
+
+    document.querySelector(".stats .chip:first-child").textContent = `${stops.length} illustrated stops`;
+    document.getElementById("visibleCount").textContent = `${stops.length} stops`;
+    document.getElementById("range").max = String(stops.length - 1);
+
+    const map = L.map("map", {
+      zoomControl:false,
+      worldCopyJump:true,
+      minZoom:2,
+      maxZoom:8
+    }).setView([8,105],2);
+    L.control.zoom({ position:"topright" }).addTo(map);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom:8,
+      attribution:"&copy; OpenStreetMap contributors"
+    }).addTo(map);
+
+    const routeLatLngs = voyagePoints.map(point => [point.lat,point.lng]);
+    const routeBounds = L.latLngBounds(routeLatLngs);
+    const routeLayer = L.layerGroup().addTo(map);
+    const routeWrapLayer = L.layerGroup();
+    const routeRenderer = L.svg({padding:1});
+    const deathIndex = voyagePoints.findIndex(point => point.key === "cook-death");
+    const cookRoute = voyagePoints.slice(0,deathIndex+1);
+    const afterCookRoute = voyagePoints.slice(deathIndex);
+    const worldOffsets = [-360,0,360];
+    const shiftedPath = (points,offset) => points.map(point => [point.lat,point.lng+offset]);
+
+    worldOffsets.forEach(offset => {
+      const targetLayer = offset === 0 ? routeLayer : routeWrapLayer;
+      L.polyline(shiftedPath(cookRoute,offset),{
+        renderer:routeRenderer,
+        color:"#574c3f",
+        weight:1.7,
+        opacity:.84,
+        lineCap:"round",
+        lineJoin:"round",
+        smoothFactor:.7,
+        interactive:false
+      }).addTo(targetLayer);
+      L.polyline(shiftedPath(afterCookRoute,offset),{
+        renderer:routeRenderer,
+        color:"#756a5c",
+        weight:1.45,
+        opacity:.72,
+        dashArray:"6 7",
+        lineCap:"round",
+        lineJoin:"round",
+        smoothFactor:.7,
+        interactive:false
+      }).addTo(targetLayer);
+    });
+
+    const routeBearing = (a,b) => {
+      const north = b.lat-a.lat;
+      const east = (b.lng-a.lng)*Math.cos(((a.lat+b.lat)/2)*Math.PI/180);
+      return Math.atan2(east,north)*180/Math.PI;
+    };
+    voyagePoints.forEach((point,index) => {
+      if(!point.arrow || !voyagePoints[index+1]) return;
+      const angle=routeBearing(point,voyagePoints[index+1]);
+      worldOffsets.forEach(offset => {
+        const targetLayer = offset === 0 ? routeLayer : routeWrapLayer;
+        L.marker([point.lat,point.lng+offset],{
+          interactive:false,keyboard:false,
+          icon:L.divIcon({
+            className:"route-arrow",
+            html:`<span style="transform:rotate(${angle}deg)">↑</span>`,
+            iconSize:[18,18],iconAnchor:[9,9]
+          })
+        }).addTo(targetLayer);
+      });
+    });
+
+    routeMilestones.forEach(event => {
+      worldOffsets.forEach(offset => {
+        const targetLayer = offset === 0 ? routeLayer : routeWrapLayer;
+        const marker=L.marker([event.lat,event.lng+offset],{
+          riseOnHover:true,
+          icon:L.divIcon({
+            className:"",
+            html:`<div class="event-marker ${event.kind}"><span>${event.kind==="death"?"×":"·"}</span></div>`,
+            iconSize:[18,18],iconAnchor:[9,9],popupAnchor:[0,-10]
+          })
+        }).addTo(targetLayer)
+          .bindTooltip(event.label,{
+            permanent:true,
+            direction:event.direction || "top",
+            offset:event.tooltipOffset || [0,-8],
+            className:"route-event-tip"
+          })
+          .bindPopup(`
+            <div class="popup-date">Route milestone</div>
+            <div class="popup-title">${escapeHtml(event.title)}</div>
+            <div class="popup-art">${escapeHtml(event.text)}</div>
+          `);
+      });
+    });
+
+    // At the overview zoom, adjacent world copies can intrude into the frame.
+    // Bring them back only once a reader zooms in far enough to pan across a wrap.
+    const syncRouteCopies = () => {
+      const shouldShow = map.getZoom() >= 3;
+      if(shouldShow && !routeLayer.hasLayer(routeWrapLayer)) routeLayer.addLayer(routeWrapLayer);
+      if(!shouldShow && routeLayer.hasLayer(routeWrapLayer)) routeLayer.removeLayer(routeWrapLayer);
+    };
+    map.on("zoomend",syncRouteCopies);
+    syncRouteCopies();
+
+    const iconFor = (stop, current=false) => L.divIcon({
+      className:"",
+      html:`<div class="voyage-marker ${current?"current":""} ${stop.image?"has-image":""}">${stop.n}</div>`,
+      iconSize:[34,34],
+      iconAnchor:[17,17],
+      popupAnchor:[0,-18]
+    });
+
+    const markers = [];
+    stops.forEach((stop,i)=>{
+      const marker=L.marker(stopLatLng(stop),{icon:iconFor(stop,i===0),riseOnHover:true})
+        .addTo(map)
+        .bindTooltip(stop.place,{direction:"top",offset:[0,-17],className:"stop-tip"})
+        .bindPopup(`
+          <div class="popup-date">${escapeHtml(stop.date)} · ${escapeHtml(stop.region)}</div>
+          <div class="popup-title">${escapeHtml(stop.place)}</div>
+          <div class="popup-art">${escapeHtml(stop.art)}</div>
+          <a class="popup-link" href="${escapeHtml(stop.link)}" target="_blank" rel="noopener noreferrer">Open illustration ↗</a>
+        `);
+      marker.on("click",()=>selectStop(i,false));
+      markers.push(marker);
+    });
+
+    const mapViewer=document.getElementById("mapViewer");
+    const mapViewerImage=document.getElementById("mapViewerImage");
+    const mapViewerTitle=document.getElementById("mapViewerTitle");
+    document.querySelectorAll(".book-map").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const src=btn.dataset.src;
+        const caption=btn.dataset.caption;
+        mapViewerImage.src=src;
+        mapViewerImage.alt=caption;
+        mapViewerTitle.textContent=caption;
+        if(typeof mapViewer.showModal==="function") mapViewer.showModal();
+        else window.open(src,"_blank","noopener");
+      });
+    });
+    const stopList=document.getElementById("stopList");
+    const emptyState=document.getElementById("emptyState");
+    const search=document.getElementById("search");
+    const detail=document.getElementById("detail");
+    const detailImage=document.getElementById("detailImage");
+    const detailFallback=document.getElementById("detailFallback");
+    const detailKicker=document.getElementById("detailKicker");
+    const detailTitle=document.getElementById("detailTitle");
+    const detailArt=document.getElementById("detailArt");
+    const detailText=document.getElementById("detailText");
+    const detailLink=document.getElementById("detailLink");
+    const range=document.getElementById("range");
+    const rangePlace=document.getElementById("rangePlace");
+    const rangeIndex=document.getElementById("rangeIndex");
+    const play=document.getElementById("play");
+    const prev=document.getElementById("prev");
+    const next=document.getElementById("next");
+    const fitAll=document.getElementById("fitAll");
+    const fitStop=document.getElementById("fitStop");
+    const toggleRoute=document.getElementById("toggleRoute");
+    const visibleCount=document.getElementById("visibleCount");
+
+    let current=0;
+    let timer=null;
+    let popupTimer=null;
+    let routeVisible=true;
+    const cards=[];
+
+    function imgError(img){
+      img.classList.add("broken");
+      img.removeAttribute("src");
+    }
+
+    function indexFromHash(){
+      const match = location.hash.match(/(\d+)/);
+      if(!match) return 0;
+      const i = stops.findIndex(stop => stop.n === Number(match[1]));
+      return i < 0 ? 0 : i;
+    }
+
+    function fitRoute(animate){
+      const wide = window.innerWidth > 900;
+      map.fitBounds(routeBounds, {
+        paddingTopLeft: wide ? [24, 110] : [12, 90],
+        paddingBottomRight: wide ? [220, 190] : [16, 120],
+        maxZoom:3,
+        animate:Boolean(animate) && !reduceMotion,
+        duration:1
+      });
+    }
+
+    function goToStop(stop, zoom=4.25, animate=true){
+      const target = stopLatLng(stop);
+      if(animate && !reduceMotion){
+        map.flyTo(target, zoom, {duration:1.05});
+      }else{
+        map.setView(target, zoom);
+      }
+    }
+
+    function openCurrentPopup(delay){
+      if(popupTimer) clearTimeout(popupTimer);
+      popupTimer = setTimeout(()=>{
+        markers[current].openPopup();
+        popupTimer = null;
+      }, delay);
+    }
+
+    function buildCards(){
+      stopList.innerHTML="";
+      cards.length=0;
+      stops.forEach((stop,i)=>{
+        const btn=document.createElement("button");
+        btn.type="button";
+        btn.className="stop-card"+(i===0?" active":"");
+        btn.dataset.index=i;
+        btn.dataset.search=(stop.place+" "+stop.region+" "+stop.art+" "+stop.date+" "+stop.note+" "+stop.type).toLowerCase();
+
+        const thumb = stop.image
+          ? `<img src="${escapeHtml(stop.image)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer"><div class="thumb-fallback">${escapeHtml(stop.type)}</div>`
+          : `<div class="thumb-fallback">${escapeHtml(stop.type)}</div>`;
+
+        btn.innerHTML=`
+          <div class="thumb">
+            ${thumb}
+            <div class="num-badge">${stop.n}</div>
+          </div>
+          <div class="stop-meta">
+            <div class="stop-date">${escapeHtml(stop.date)} · ${escapeHtml(stop.region)}</div>
+            <h3 class="stop-place">${escapeHtml(stop.place)}</h3>
+            <p class="stop-art">${escapeHtml(stop.art)}</p>
+          </div>`;
+        const img=btn.querySelector("img");
+        if(img) img.addEventListener("error",()=>imgError(img));
+        btn.addEventListener("click",()=>selectStop(i,true));
+        stopList.appendChild(btn);
+        cards.push(btn);
+      });
+    }
+
+    function updateRangeTrack(){
+      const pct = stops.length < 2 ? 0 : (current/(stops.length-1))*100;
+      range.style.background=`linear-gradient(90deg,#9e492c 0%,#9e492c ${pct}%,rgba(99,77,48,.18) ${pct}%,rgba(99,77,48,.18) 100%)`;
+    }
+
+    function selectStop(i,fly=true){
+      current=(i+stops.length)%stops.length;
+      const s=stops[current];
+
+      markers.forEach((m,idx)=>{
+        m.setIcon(iconFor(stops[idx],idx===current));
+        m.setZIndexOffset(idx===current ? 1000 : 0);
+      });
+      cards.forEach((c,idx)=>{
+        const on = idx===current;
+        c.classList.toggle("active", on);
+        if(on) c.setAttribute("aria-current","true");
+        else c.removeAttribute("aria-current");
+      });
+
+      const activeCard=cards[current];
+      if(activeCard && activeCard.offsetParent!==null){
+        activeCard.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block:"nearest"});
+      }
+
+      detail.classList.toggle("no-image", !s.image);
+      detailKicker.textContent=`Stop ${s.n} · ${s.date} · ${s.region}`;
+      detailTitle.textContent=s.place;
+      detailArt.textContent=s.art;
+      detailText.textContent=s.note;
+      detailLink.href=s.link;
+
+      detailFallback.textContent=s.type;
+      detailImage.classList.remove("broken");
+      if(s.image){
+        detailImage.src=s.image;
+        detailImage.alt=s.art;
+      }else{
+        detailImage.removeAttribute("src");
+        detailImage.classList.add("broken");
+        detailImage.alt="";
+      }
+
+      range.value=String(current);
+      rangePlace.textContent=`${s.place} · ${s.region}`;
+      rangeIndex.textContent=`${current+1} / ${stops.length}`;
+      updateRangeTrack();
+      history.replaceState(null, "", `#${s.n}`);
+
+      if(fly){
+        const z = Math.abs(s.lat) > 48 ? 4 : 4.25;
+        goToStop(s, z, true);
+        openCurrentPopup(reduceMotion ? 0 : 700);
+      }
+    }
+
+    detailImage.addEventListener("error",()=>imgError(detailImage));
+
+    search.addEventListener("input",()=>{
+      const q=search.value.trim().toLowerCase();
+      let shown=0;
+      cards.forEach(card=>{
+        const yes=!q || card.dataset.search.includes(q);
+        card.style.display=yes?"grid":"none";
+        if(yes) shown++;
+      });
+      visibleCount.textContent=`${shown} ${shown===1?"stop":"stops"}`;
+      emptyState.hidden = shown > 0;
+    });
+
+    range.addEventListener("input",()=>selectStop(Number(range.value),true));
+    prev.addEventListener("click",()=>selectStop(current-1,true));
+    next.addEventListener("click",()=>selectStop(current+1,true));
+    fitStop.addEventListener("click",()=>goToStop(stops[current], 4.5, true));
+
+    function stopPlayback(){
+      if(timer){clearInterval(timer);timer=null}
+      play.textContent="▶";
+      play.title="Play route";
+      play.setAttribute("aria-label","Play route");
+      play.setAttribute("aria-pressed","false");
+    }
+    play.addEventListener("click",()=>{
+      if(timer){stopPlayback();return}
+      if(current >= stops.length - 1) selectStop(0,true);
+      play.textContent="❚❚";
+      play.title="Pause route";
+      play.setAttribute("aria-label","Pause route");
+      play.setAttribute("aria-pressed","true");
+      timer=setInterval(()=>{
+        const nxt=current+1;
+        if(nxt>=stops.length){stopPlayback();return}
+        selectStop(nxt,true);
+      },3100);
+    });
+
+    fitAll.addEventListener("click",()=>fitRoute(true));
+
+    toggleRoute.addEventListener("click",()=>{
+      routeVisible=!routeVisible;
+      if(routeVisible){
+        routeLayer.addTo(map);
+        toggleRoute.textContent="Hide route";
+      }else{
+        map.removeLayer(routeLayer);
+        toggleRoute.textContent="Show route";
+      }
+      toggleRoute.setAttribute("aria-pressed", String(routeVisible));
+    });
+
+    buildCards();
+    const start = indexFromHash();
+    selectStop(start, false);
+    if(start === 0){
+      fitRoute(false);
+    }else{
+      goToStop(stops[start], Math.abs(stops[start].lat) > 48 ? 4 : 4.25, false);
+    }
+    setTimeout(()=>map.invalidateSize(),150);
+    window.addEventListener("resize", ()=>map.invalidateSize());
+    window.addEventListener("hashchange", ()=>{
+      const i = indexFromHash();
+      if(i !== current) selectStop(i, true);
+    });
+
+    document.addEventListener("keydown",e=>{
+      if(mapViewer.open) return;
+      const tag = document.activeElement && document.activeElement.tagName;
+      const typing = tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT";
+      if(typing) return;
+      if(e.key==="ArrowRight") selectStop(current+1,true);
+      if(e.key==="ArrowLeft") selectStop(current-1,true);
+      if(e.key===" " && tag !== "BUTTON" && tag !== "A"){
+        e.preventDefault();
+        play.click();
+      }
+      if(e.key==="Escape") map.closePopup();
+    });
+  </script>
+</body>
+</html>
