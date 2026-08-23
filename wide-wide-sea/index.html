@@ -614,6 +614,20 @@
     }
     .leaflet-tooltip.stop-tip::before{border-top-color:#f9efd5}
 
+    .map-interaction-toggle{
+      position:absolute;z-index:910;left:18px;top:92px;
+      display:none;align-items:center;justify-content:center;
+      min-height:40px;padding:8px 12px;
+      border:1px solid rgba(70,57,38,.28);border-radius:999px;
+      color:var(--ink);background:rgba(255,247,227,.96);
+      box-shadow:var(--shadow-soft);cursor:pointer;
+      font:700 10px/1 ui-sans-serif,system-ui,sans-serif;
+      touch-action:manipulation;
+    }
+    .map-stage.map-interactive .map-interaction-toggle{
+      color:#fff9ec;background:var(--rust);border-color:var(--rust);
+    }
+
     @media (prefers-reduced-motion: reduce){
       .stop-card,.action,.icon-btn,.small-btn,.detail{transition:none}
       .stop-card:hover,.action:hover,.icon-btn:hover{transform:none}
@@ -624,7 +638,14 @@
       body{overflow:auto}
       .shell{height:auto;min-height:100vh;grid-template-columns:1fr}
       .sidebar{height:auto;max-height:none;border-right:0;border-bottom:1px solid rgba(70,57,38,.25)}
-      .map-stage{height:76vh;min-height:620px}
+      .map-stage{
+        height:clamp(500px,72vh,680px);
+        height:clamp(500px,72svh,680px);
+        min-height:0;scroll-margin-top:8px;
+      }
+      #map{touch-action:pan-y}
+      .map-stage.map-interactive #map{touch-action:none}
+      .map-interaction-toggle{display:inline-flex}
       .search-wrap{position:relative;background:transparent;padding-top:0}
       .stop-list{grid-template-columns:repeat(2,minmax(0,1fr))}
       .stop-card{grid-template-columns:68px minmax(0,1fr)}
@@ -635,7 +656,12 @@
       .masthead{padding:15px}
       h1{font-size:28px}
       .stop-list{grid-template-columns:1fr}
-      .map-stage{height:82vh;min-height:670px}
+      .map-stage{
+        height:clamp(480px,68vh,600px);
+        height:clamp(480px,68svh,600px);
+        min-height:0;
+      }
+      .map-interaction-toggle{left:12px;top:84px}
       .map-head{left:12px;top:12px;right:82px;max-width:none}
       .compass{right:12px;top:12px;width:64px;height:64px}
       .compass svg{width:52px;height:52px}
@@ -724,6 +750,7 @@
 
     <main class="map-stage">
       <div id="map"></div>
+      <button id="mapInteractionToggle" class="map-interaction-toggle" type="button" aria-pressed="false">Explore map</button>
       <div class="map-wash"></div>
 
       <div class="map-head">
@@ -1051,7 +1078,7 @@
     const routeBounds = L.latLngBounds(routeLatLngs);
     const routeLayer = L.layerGroup().addTo(map);
     const routeWrapLayer = L.layerGroup();
-    const routeRenderer = L.svg({padding:1});
+    const routeRenderer = L.canvas({padding:.5});
     const deathIndex = voyagePoints.findIndex(point => point.key === "cook-death");
     const cookRoute = voyagePoints.slice(0,deathIndex+1);
     const afterCookRoute = voyagePoints.slice(deathIndex);
@@ -1129,15 +1156,9 @@
       });
     });
 
-    // At the overview zoom, adjacent world copies can intrude into the frame.
-    // Bring them back only once a reader zooms in far enough to pan across a wrap.
-    const syncRouteCopies = () => {
-      const shouldShow = map.getZoom() >= 3;
-      if(shouldShow && !routeLayer.hasLayer(routeWrapLayer)) routeLayer.addLayer(routeWrapLayer);
-      if(!shouldShow && routeLayer.hasLayer(routeWrapLayer)) routeLayer.removeLayer(routeWrapLayer);
-    };
-    map.on("zoomend",syncRouteCopies);
-    syncRouteCopies();
+    // Keep neighboring world copies mounted at every zoom so the dateline-crossing
+    // voyage never vanishes while a reader pans between wrapped worlds.
+    routeLayer.addLayer(routeWrapLayer);
 
     const iconFor = (stop, current=false) => L.divIcon({
       className:"",
@@ -1197,6 +1218,50 @@
     const fitStop=document.getElementById("fitStop");
     const toggleRoute=document.getElementById("toggleRoute");
     const visibleCount=document.getElementById("visibleCount");
+    const mapStage=document.querySelector(".map-stage");
+    const mapInteractionToggle=document.getElementById("mapInteractionToggle");
+    const mobileMapQuery=window.matchMedia("(max-width:900px)");
+    let mobileMapInteractive=false;
+
+    function setMobileMapInteraction(enabled){
+      if(!mobileMapQuery.matches){
+        mobileMapInteractive=false;
+        mapStage.classList.remove("map-interactive");
+        mapInteractionToggle.setAttribute("aria-pressed","false");
+        mapInteractionToggle.textContent="Explore map";
+        map.dragging.enable();
+        map.touchZoom.enable();
+        map.doubleClickZoom.enable();
+        map.boxZoom.enable();
+        map.keyboard.enable();
+        map.scrollWheelZoom.enable();
+        return;
+      }
+
+      mobileMapInteractive=Boolean(enabled);
+      mapStage.classList.toggle("map-interactive",mobileMapInteractive);
+      mapInteractionToggle.setAttribute("aria-pressed",String(mobileMapInteractive));
+      mapInteractionToggle.textContent=mobileMapInteractive ? "Done — scroll page" : "Explore map";
+
+      if(mobileMapInteractive){
+        map.dragging.enable();
+        map.touchZoom.enable();
+        map.doubleClickZoom.enable();
+      }else{
+        map.dragging.disable();
+        map.touchZoom.disable();
+        map.doubleClickZoom.disable();
+      }
+      map.boxZoom.disable();
+      map.keyboard.disable();
+      map.scrollWheelZoom.disable();
+    }
+
+    mapInteractionToggle.addEventListener("click",()=>setMobileMapInteraction(!mobileMapInteractive));
+    const syncMobileMapMode=()=>setMobileMapInteraction(false);
+    if(mobileMapQuery.addEventListener) mobileMapQuery.addEventListener("change",syncMobileMapMode);
+    else mobileMapQuery.addListener(syncMobileMapMode);
+    syncMobileMapMode();
 
     let current=0;
     let timer=null;
@@ -1297,7 +1362,7 @@
       });
 
       const activeCard=cards[current];
-      if(activeCard && activeCard.offsetParent!==null){
+      if(window.innerWidth > 900 && activeCard && activeCard.offsetParent!==null){
         activeCard.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block:"nearest"});
       }
 
@@ -1394,8 +1459,19 @@
     }else{
       goToStop(stops[start], Math.abs(stops[start].lat) > 48 ? 4 : 4.25, false);
     }
-    setTimeout(()=>map.invalidateSize(),150);
-    window.addEventListener("resize", ()=>map.invalidateSize());
+    let resizeFrame=null;
+    const invalidateMap=()=>{
+      if(resizeFrame) cancelAnimationFrame(resizeFrame);
+      resizeFrame=requestAnimationFrame(()=>{
+        map.invalidateSize({pan:false,debounceMoveend:true});
+        resizeFrame=null;
+      });
+    };
+    setTimeout(invalidateMap,150);
+    window.addEventListener("resize",invalidateMap);
+    window.addEventListener("orientationchange",()=>setTimeout(invalidateMap,120));
+    if(window.visualViewport) window.visualViewport.addEventListener("resize",invalidateMap);
+    if("ResizeObserver" in window) new ResizeObserver(invalidateMap).observe(mapStage);
     window.addEventListener("hashchange", ()=>{
       const i = indexFromHash();
       if(i !== current) selectStop(i, true);
@@ -1412,7 +1488,10 @@
         e.preventDefault();
         play.click();
       }
-      if(e.key==="Escape") map.closePopup();
+      if(e.key==="Escape"){
+        if(mobileMapInteractive) setMobileMapInteraction(false);
+        else map.closePopup();
+      }
     });
   </script>
 </body>
