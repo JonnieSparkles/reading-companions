@@ -1,0 +1,83 @@
+name: Temporary Wide Wide Sea mobile fix
+
+on:
+  push:
+    branches:
+      - fix/wide-wide-sea-mobile-map
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/wide-wide-sea-mobile-map
+      - name: Patch mobile map behavior
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('wide-wide-sea/index.html')
+          text = path.read_text()
+
+          def replace_once(old, new):
+              global text
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'Expected one match, got {count}: {old[:80]!r}')
+              text = text.replace(old, new, 1)
+
+          replace_once(
+          '''    .leaflet-tooltip.stop-tip::before{border-top-color:#f9efd5}\n\n    @media (prefers-reduced-motion: reduce){''',
+          '''    .leaflet-tooltip.stop-tip::before{border-top-color:#f9efd5}\n\n    .map-interaction-toggle{\n      position:absolute;z-index:910;left:18px;top:92px;\n      display:none;align-items:center;justify-content:center;\n      min-height:40px;padding:8px 12px;\n      border:1px solid rgba(70,57,38,.28);border-radius:999px;\n      color:var(--ink);background:rgba(255,247,227,.96);\n      box-shadow:var(--shadow-soft);cursor:pointer;\n      font:700 10px/1 ui-sans-serif,system-ui,sans-serif;\n      touch-action:manipulation;\n    }\n    .map-stage.map-interactive .map-interaction-toggle{\n      color:#fff9ec;background:var(--rust);border-color:var(--rust);\n    }\n\n    @media (prefers-reduced-motion: reduce){''')
+
+          replace_once(
+          '''      .map-stage{height:76vh;min-height:620px}\n      .search-wrap{position:relative;background:transparent;padding-top:0}''',
+          '''      .map-stage{\n        height:clamp(500px,72vh,680px);\n        height:clamp(500px,72svh,680px);\n        min-height:0;scroll-margin-top:8px;\n      }\n      #map{touch-action:pan-y}\n      .map-stage.map-interactive #map{touch-action:none}\n      .map-interaction-toggle{display:inline-flex}\n      .search-wrap{position:relative;background:transparent;padding-top:0}''')
+
+          replace_once(
+          '''      .map-stage{height:82vh;min-height:670px}\n      .map-head{left:12px;top:12px;right:82px;max-width:none}''',
+          '''      .map-stage{\n        height:clamp(480px,68vh,600px);\n        height:clamp(480px,68svh,600px);\n        min-height:0;\n      }\n      .map-interaction-toggle{left:12px;top:84px}\n      .map-head{left:12px;top:12px;right:82px;max-width:none}''')
+
+          replace_once(
+          '''      <div id="map"></div>\n      <div class="map-wash"></div>''',
+          '''      <div id="map"></div>\n      <button id="mapInteractionToggle" class="map-interaction-toggle" type="button" aria-pressed="false">Explore map</button>\n      <div class="map-wash"></div>''')
+
+          replace_once(
+          '''    const routeWrapLayer = L.layerGroup();\n    const routeRenderer = L.svg({padding:1});''',
+          '''    const routeWrapLayer = L.layerGroup();\n    const routeRenderer = L.canvas({padding:.5});''')
+
+          replace_once(
+          '''    // At the overview zoom, adjacent world copies can intrude into the frame.\n    // Bring them back only once a reader zooms in far enough to pan across a wrap.\n    const syncRouteCopies = () => {\n      const shouldShow = map.getZoom() >= 3;\n      if(shouldShow && !routeLayer.hasLayer(routeWrapLayer)) routeLayer.addLayer(routeWrapLayer);\n      if(!shouldShow && routeLayer.hasLayer(routeWrapLayer)) routeLayer.removeLayer(routeWrapLayer);\n    };\n    map.on("zoomend",syncRouteCopies);\n    syncRouteCopies();''',
+          '''    // Keep neighboring world copies mounted at every zoom so the dateline-crossing\n    // voyage never vanishes while a reader pans between wrapped worlds.\n    routeLayer.addLayer(routeWrapLayer);''')
+
+          replace_once(
+          '''    const visibleCount=document.getElementById("visibleCount");\n\n    let current=0;''',
+          '''    const visibleCount=document.getElementById("visibleCount");\n    const mapStage=document.querySelector(".map-stage");\n    const mapInteractionToggle=document.getElementById("mapInteractionToggle");\n    const mobileMapQuery=window.matchMedia("(max-width:900px)");\n    let mobileMapInteractive=false;\n\n    function setMobileMapInteraction(enabled){\n      if(!mobileMapQuery.matches){\n        mobileMapInteractive=false;\n        mapStage.classList.remove("map-interactive");\n        mapInteractionToggle.setAttribute("aria-pressed","false");\n        mapInteractionToggle.textContent="Explore map";\n        map.dragging.enable();\n        map.touchZoom.enable();\n        map.doubleClickZoom.enable();\n        map.boxZoom.enable();\n        map.keyboard.enable();\n        map.scrollWheelZoom.enable();\n        return;\n      }\n\n      mobileMapInteractive=Boolean(enabled);\n      mapStage.classList.toggle("map-interactive",mobileMapInteractive);\n      mapInteractionToggle.setAttribute("aria-pressed",String(mobileMapInteractive));\n      mapInteractionToggle.textContent=mobileMapInteractive ? "Done — scroll page" : "Explore map";\n\n      if(mobileMapInteractive){\n        map.dragging.enable();\n        map.touchZoom.enable();\n        map.doubleClickZoom.enable();\n      }else{\n        map.dragging.disable();\n        map.touchZoom.disable();\n        map.doubleClickZoom.disable();\n      }\n      map.boxZoom.disable();\n      map.keyboard.disable();\n      map.scrollWheelZoom.disable();\n    }\n\n    mapInteractionToggle.addEventListener("click",()=>setMobileMapInteraction(!mobileMapInteractive));\n    const syncMobileMapMode=()=>setMobileMapInteraction(false);\n    if(mobileMapQuery.addEventListener) mobileMapQuery.addEventListener("change",syncMobileMapMode);\n    else mobileMapQuery.addListener(syncMobileMapMode);\n    syncMobileMapMode();\n\n    let current=0;''')
+
+          replace_once(
+          '''      if(activeCard && activeCard.offsetParent!==null){\n        activeCard.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block:"nearest"});\n      }''',
+          '''      if(window.innerWidth > 900 && activeCard && activeCard.offsetParent!==null){\n        activeCard.scrollIntoView({behavior: reduceMotion ? "auto" : "smooth", block:"nearest"});\n      }''')
+
+          replace_once(
+          '''    setTimeout(()=>map.invalidateSize(),150);\n    window.addEventListener("resize", ()=>map.invalidateSize());\n    window.addEventListener("hashchange", ()=>{''',
+          '''    let resizeFrame=null;\n    const invalidateMap=()=>{\n      if(resizeFrame) cancelAnimationFrame(resizeFrame);\n      resizeFrame=requestAnimationFrame(()=>{\n        map.invalidateSize({pan:false,debounceMoveend:true});\n        resizeFrame=null;\n      });\n    };\n    setTimeout(invalidateMap,150);\n    window.addEventListener("resize",invalidateMap);\n    window.addEventListener("orientationchange",()=>setTimeout(invalidateMap,120));\n    if(window.visualViewport) window.visualViewport.addEventListener("resize",invalidateMap);\n    if("ResizeObserver" in window) new ResizeObserver(invalidateMap).observe(mapStage);\n    window.addEventListener("hashchange", ()=>{''')
+
+          replace_once(
+          '''      if(e.key==="Escape") map.closePopup();''',
+          '''      if(e.key==="Escape"){\n        if(mobileMapInteractive) setMobileMapInteraction(false);\n        else map.closePopup();\n      }''')
+
+          path.write_text(text)
+          PY
+      - name: Commit fix
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/tmp-wide-mobile-fix.yml
+          git add wide-wide-sea/index.html
+          git commit -m "Fix Wide Wide Sea mobile map interaction"
+          git push origin HEAD:fix/wide-wide-sea-mobile-map
