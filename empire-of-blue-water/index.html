@@ -1263,20 +1263,6 @@ input[type=range]::-moz-range-thumb{
 }
 .leaflet-control-attribution a{color:#719da0!important}
 
-.map-interaction-toggle{
-  position:absolute;z-index:910;left:26px;top:100px;
-  display:none;align-items:center;justify-content:center;
-  min-height:40px;padding:8px 11px;
-  border:1px solid rgba(105,181,183,.32);border-radius:0;
-  color:#a9c7c5;background:rgba(4,25,34,.94);
-  box-shadow:7px 7px 0 rgba(0,8,12,.20);cursor:pointer;
-  font:700 8px/1 "Courier New",monospace;
-  text-transform:uppercase;letter-spacing:.06em;
-  touch-action:manipulation;
-}
-.map-stage.map-interactive .map-interaction-toggle{
-  color:#071820;background:var(--brass);border-color:var(--brass);
-}
 
 @media(max-width:1100px) and (min-width:981px){
   .app{grid-template-columns:minmax(0,1fr) 340px}
@@ -1304,7 +1290,6 @@ input[type=range]::-moz-range-thumb{
   }
   #map{touch-action:pan-y}
   .map-stage.map-interactive #map{touch-action:none}
-  .map-interaction-toggle{display:inline-flex}
   .toolbar{position:relative}
   .mobile-map-jump{display:flex}
   .stop-list{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -1333,7 +1318,6 @@ input[type=range]::-moz-range-thumb{
     height:clamp(480px,68svh,610px);
     min-height:0;
   }
-  .map-interaction-toggle{left:18px;right:auto;top:92px}
   .map-title{left:18px;top:16px;right:88px;width:auto}
   .coordinate-readout{display:none}
   .compass{right:15px;top:98px;width:58px;height:58px}
@@ -1474,7 +1458,6 @@ input[type=range]::-moz-range-thumb{
 
   <main id="mapStage" class="map-stage">
     <div id="map"></div>
-    <button id="mapInteractionToggle" class="map-interaction-toggle" type="button" aria-pressed="false">Explore map</button>
     <div class="map-wash"></div>
 
     <div class="map-title">
@@ -1856,7 +1839,6 @@ const stopList=$("stopList");
 const search=$("search");
 const range=$("range");
 const mapStage=$("mapStage");
-const mapInteractionToggle=$("mapInteractionToggle");
 const mobileMapQuery=window.matchMedia("(max-width:980px)");
 let mobileMapInteractive=false;
 
@@ -1864,8 +1846,6 @@ function setMobileMapInteraction(enabled){
   if(!mobileMapQuery.matches){
     mobileMapInteractive=false;
     mapStage.classList.remove("map-interactive");
-    mapInteractionToggle.setAttribute("aria-pressed","false");
-    mapInteractionToggle.textContent="Explore map";
     map.dragging.enable();
     map.touchZoom.enable();
     map.doubleClickZoom.enable();
@@ -1877,9 +1857,6 @@ function setMobileMapInteraction(enabled){
 
   mobileMapInteractive=Boolean(enabled);
   mapStage.classList.toggle("map-interactive",mobileMapInteractive);
-  mapInteractionToggle.setAttribute("aria-pressed",String(mobileMapInteractive));
-  mapInteractionToggle.textContent=mobileMapInteractive ? "Done — scroll page" : "Explore map";
-
   if(mobileMapInteractive){
     map.dragging.enable();
     map.touchZoom.enable();
@@ -1890,11 +1867,18 @@ function setMobileMapInteraction(enabled){
     map.doubleClickZoom.disable();
   }
   map.boxZoom.disable();
-  map.keyboard.disable();
+  if(mobileMapInteractive) map.keyboard.enable();
+  else map.keyboard.disable();
   map.scrollWheelZoom.disable();
 }
 
-mapInteractionToggle.addEventListener("click",()=>setMobileMapInteraction(!mobileMapInteractive));
+map.getContainer().addEventListener("click",()=>{
+  if(mobileMapQuery.matches && !mobileMapInteractive) setMobileMapInteraction(true);
+});
+document.addEventListener("pointerdown",event=>{
+  if(!mobileMapInteractive) return;
+  if(!map.getContainer().contains(event.target)) setMobileMapInteraction(false);
+},true);
 const syncMobileMapMode=()=>setMobileMapInteraction(false);
 if(mobileMapQuery.addEventListener) mobileMapQuery.addEventListener("change",syncMobileMapMode);
 else mobileMapQuery.addListener(syncMobileMapMode);
