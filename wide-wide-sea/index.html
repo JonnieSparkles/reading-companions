@@ -614,19 +614,6 @@
     }
     .leaflet-tooltip.stop-tip::before{border-top-color:#f9efd5}
 
-    .map-interaction-toggle{
-      position:absolute;z-index:910;left:18px;top:92px;
-      display:none;align-items:center;justify-content:center;
-      min-height:40px;padding:8px 12px;
-      border:1px solid rgba(70,57,38,.28);border-radius:999px;
-      color:var(--ink);background:rgba(255,247,227,.96);
-      box-shadow:var(--shadow-soft);cursor:pointer;
-      font:700 10px/1 ui-sans-serif,system-ui,sans-serif;
-      touch-action:manipulation;
-    }
-    .map-stage.map-interactive .map-interaction-toggle{
-      color:#fff9ec;background:var(--rust);border-color:var(--rust);
-    }
 
     @media (prefers-reduced-motion: reduce){
       .stop-card,.action,.icon-btn,.small-btn,.detail{transition:none}
@@ -645,7 +632,6 @@
       }
       #map{touch-action:pan-y}
       .map-stage.map-interactive #map{touch-action:none}
-      .map-interaction-toggle{display:inline-flex}
       .search-wrap{position:relative;background:transparent;padding-top:0}
       .stop-list{grid-template-columns:repeat(2,minmax(0,1fr))}
       .stop-card{grid-template-columns:68px minmax(0,1fr)}
@@ -661,7 +647,6 @@
         height:clamp(480px,68svh,600px);
         min-height:0;
       }
-      .map-interaction-toggle{left:12px;top:84px}
       .map-head{left:12px;top:12px;right:82px;max-width:none}
       .compass{right:12px;top:12px;width:64px;height:64px}
       .compass svg{width:52px;height:52px}
@@ -750,7 +735,6 @@
 
     <main class="map-stage">
       <div id="map"></div>
-      <button id="mapInteractionToggle" class="map-interaction-toggle" type="button" aria-pressed="false">Explore map</button>
       <div class="map-wash"></div>
 
       <div class="map-head">
@@ -1219,7 +1203,6 @@
     const toggleRoute=document.getElementById("toggleRoute");
     const visibleCount=document.getElementById("visibleCount");
     const mapStage=document.querySelector(".map-stage");
-    const mapInteractionToggle=document.getElementById("mapInteractionToggle");
     const mobileMapQuery=window.matchMedia("(max-width:900px)");
     let mobileMapInteractive=false;
 
@@ -1227,8 +1210,6 @@
       if(!mobileMapQuery.matches){
         mobileMapInteractive=false;
         mapStage.classList.remove("map-interactive");
-        mapInteractionToggle.setAttribute("aria-pressed","false");
-        mapInteractionToggle.textContent="Explore map";
         map.dragging.enable();
         map.touchZoom.enable();
         map.doubleClickZoom.enable();
@@ -1240,9 +1221,6 @@
 
       mobileMapInteractive=Boolean(enabled);
       mapStage.classList.toggle("map-interactive",mobileMapInteractive);
-      mapInteractionToggle.setAttribute("aria-pressed",String(mobileMapInteractive));
-      mapInteractionToggle.textContent=mobileMapInteractive ? "Done — scroll page" : "Explore map";
-
       if(mobileMapInteractive){
         map.dragging.enable();
         map.touchZoom.enable();
@@ -1253,11 +1231,18 @@
         map.doubleClickZoom.disable();
       }
       map.boxZoom.disable();
-      map.keyboard.disable();
+      if(mobileMapInteractive) map.keyboard.enable();
+      else map.keyboard.disable();
       map.scrollWheelZoom.disable();
     }
 
-    mapInteractionToggle.addEventListener("click",()=>setMobileMapInteraction(!mobileMapInteractive));
+    map.getContainer().addEventListener("click",()=>{
+      if(mobileMapQuery.matches && !mobileMapInteractive) setMobileMapInteraction(true);
+    });
+    document.addEventListener("pointerdown",event=>{
+      if(!mobileMapInteractive) return;
+      if(!map.getContainer().contains(event.target)) setMobileMapInteraction(false);
+    },true);
     const syncMobileMapMode=()=>setMobileMapInteraction(false);
     if(mobileMapQuery.addEventListener) mobileMapQuery.addEventListener("change",syncMobileMapMode);
     else mobileMapQuery.addListener(syncMobileMapMode);
