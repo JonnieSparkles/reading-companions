@@ -1263,6 +1263,7 @@ input[type=range]::-moz-range-thumb{
 }
 .leaflet-control-attribution a{color:#719da0!important}
 
+
 @media(max-width:1100px) and (min-width:981px){
   .app{grid-template-columns:minmax(0,1fr) 340px}
   .sidebar::before{width:340px}
@@ -1281,7 +1282,14 @@ input[type=range]::-moz-range-thumb{
     border-left:0;border-bottom:1px solid rgba(112,184,185,.22);
   }
   .sidebar::before{position:absolute;left:0;right:0;width:100%}
-  .map-stage{grid-column:1;grid-row:2;width:100%;min-width:0;height:78vh;min-height:660px;scroll-margin-top:8px}
+  .map-stage{
+    grid-column:1;grid-row:2;width:100%;min-width:0;
+    height:clamp(500px,72vh,680px);
+    height:clamp(500px,72svh,680px);
+    min-height:0;scroll-margin-top:8px;
+  }
+  #map{touch-action:pan-y}
+  .map-stage.map-interactive #map{touch-action:none}
   .toolbar{position:relative}
   .mobile-map-jump{display:flex}
   .stop-list{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -1305,7 +1313,11 @@ input[type=range]::-moz-range-thumb{
   .brief-grid{grid-template-columns:1fr}
   .brief-wide{grid-column:auto}
   .stop-list{grid-template-columns:1fr}
-  .map-stage{height:84vh;min-height:720px}
+  .map-stage{
+    height:clamp(480px,68vh,610px);
+    height:clamp(480px,68svh,610px);
+    min-height:0;
+  }
   .map-title{left:18px;top:16px;right:88px;width:auto}
   .coordinate-readout{display:none}
   .compass{right:15px;top:98px;width:58px;height:58px}
@@ -1801,6 +1813,7 @@ L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{
 const routeLayer = L.layerGroup().addTo(map);
 const markerLayer = L.layerGroup().addTo(map);
 const contextLayer = L.layerGroup().addTo(map);
+const routeRenderer = L.canvas({padding:.5});
 
 contextPlaces.forEach(p=>{
   const icon=L.divIcon({
@@ -1825,6 +1838,51 @@ const campaignsEl=$("campaigns");
 const stopList=$("stopList");
 const search=$("search");
 const range=$("range");
+const mapStage=$("mapStage");
+const mobileMapQuery=window.matchMedia("(max-width:980px)");
+let mobileMapInteractive=false;
+
+function setMobileMapInteraction(enabled){
+  if(!mobileMapQuery.matches){
+    mobileMapInteractive=false;
+    mapStage.classList.remove("map-interactive");
+    map.dragging.enable();
+    map.touchZoom.enable();
+    map.doubleClickZoom.enable();
+    map.boxZoom.enable();
+    map.keyboard.enable();
+    map.scrollWheelZoom.enable();
+    return;
+  }
+
+  mobileMapInteractive=Boolean(enabled);
+  mapStage.classList.toggle("map-interactive",mobileMapInteractive);
+  if(mobileMapInteractive){
+    map.dragging.enable();
+    map.touchZoom.enable();
+    map.doubleClickZoom.enable();
+  }else{
+    map.dragging.disable();
+    map.touchZoom.disable();
+    map.doubleClickZoom.disable();
+  }
+  map.boxZoom.disable();
+  if(mobileMapInteractive) map.keyboard.enable();
+  else map.keyboard.disable();
+  map.scrollWheelZoom.disable();
+}
+
+map.getContainer().addEventListener("click",()=>{
+  if(mobileMapQuery.matches && !mobileMapInteractive) setMobileMapInteraction(true);
+});
+document.addEventListener("pointerdown",event=>{
+  if(!mobileMapInteractive) return;
+  if(!map.getContainer().contains(event.target)) setMobileMapInteraction(false);
+},true);
+const syncMobileMapMode=()=>setMobileMapInteraction(false);
+if(mobileMapQuery.addEventListener) mobileMapQuery.addEventListener("change",syncMobileMapMode);
+else mobileMapQuery.addListener(syncMobileMapMode);
+syncMobileMapMode();
 
 function handleImageError(img){
   img.classList.add("broken");
@@ -1848,7 +1906,10 @@ function stopIcon(stop,i,c,active){
 }
 
 function routeStyle(c){
-  return {color:c.color,weight:2.4,opacity:.94,dashArray:"14 5 2 5",lineCap:"butt",lineJoin:"round"};
+  return {
+    renderer:routeRenderer,interactive:false,
+    color:c.color,weight:2.4,opacity:.94,dashArray:"14 5 2 5",lineCap:"butt",lineJoin:"round"
+  };
 }
 
 function drawCampaign(){
@@ -1859,14 +1920,14 @@ function drawCampaign(){
 
   // create route segments; Panama gets a special river / land visual treatment
   const coords=c.stops.map(s=>[s.lat,s.lon]);
-  L.polyline(coords,{color:"#020b10",weight:6,opacity:.62,lineCap:"round"}).addTo(routeLayer);
+  L.polyline(coords,{renderer:routeRenderer,interactive:false,color:"#020b10",weight:6,opacity:.62,lineCap:"round"}).addTo(routeLayer);
   L.polyline(coords,routeStyle(c)).addTo(routeLayer);
 
   if(c.id==="panama"){
     const river=[[9.306,-80.001],[9.24,-79.94],[9.188,-79.865],[9.14,-79.77],[9.118,-79.690]];
-    L.polyline(river,{color:"#58b8bf",weight:3.2,opacity:.88,lineCap:"round"}).addTo(routeLayer);
+    L.polyline(river,{renderer:routeRenderer,interactive:false,color:"#58b8bf",weight:3.2,opacity:.88,lineCap:"round"}).addTo(routeLayer);
     const overland=[[9.118,-79.690],[9.08,-79.61],[9.04,-79.55],[9.035,-79.515]];
-    L.polyline(overland,{color:"#d5a84f",weight:2.6,opacity:.86,dashArray:"2 7",lineCap:"round"}).addTo(routeLayer);
+    L.polyline(overland,{renderer:routeRenderer,interactive:false,color:"#d5a84f",weight:2.6,opacity:.86,dashArray:"2 7",lineCap:"round"}).addTo(routeLayer);
   }
 
   c.stops.forEach((s,i)=>{
@@ -1978,7 +2039,9 @@ function selectStop(i,fly=true){
   updateRange();
 
   const card=stopList.children[stopIndex];
-  if(card && card.offsetParent!==null) card.scrollIntoView({behavior:"smooth",block:"nearest"});
+  if(window.innerWidth > 980 && card && card.offsetParent!==null){
+    card.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }
 
   if(fly){
     const s=c.stops[stopIndex];
@@ -2084,7 +2147,22 @@ renderStops();
 drawCampaign();
 selectStop(0,false);
 fitCurrentCampaign();
-setTimeout(()=>map.invalidateSize(),150);
+let resizeFrame=null;
+const invalidateMap=()=>{
+  if(resizeFrame) cancelAnimationFrame(resizeFrame);
+  resizeFrame=requestAnimationFrame(()=>{
+    map.invalidateSize({pan:false,debounceMoveend:true});
+    routeLayer.eachLayer(layer=>{
+      if(typeof layer.redraw==="function") layer.redraw();
+    });
+    resizeFrame=null;
+  });
+};
+setTimeout(invalidateMap,150);
+window.addEventListener("resize",invalidateMap);
+window.addEventListener("orientationchange",()=>setTimeout(invalidateMap,120));
+if(window.visualViewport) window.visualViewport.addEventListener("resize",invalidateMap);
+if("ResizeObserver" in window) new ResizeObserver(invalidateMap).observe(mapStage);
 </script>
 </body>
 </html>
