@@ -1,0 +1,100 @@
+name: Deploy reading companions to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Assemble companion sites
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+
+          mkdir -p _site
+          companions=()
+
+          # Treat every top-level directory containing index.html as a companion.
+          # Copy each one to the same path in the Pages artifact so new companions
+          # are picked up automatically without editing this workflow.
+          for index in */index.html; do
+            dir="${index%/index.html}"
+            [[ "$dir" == "_site" ]] && continue
+
+            companions+=("$dir")
+            mkdir -p "_site/$dir"
+            cp -a "$dir/." "_site/$dir/"
+          done
+
+          if ((${#companions[@]} == 0)); then
+            echo "No top-level companion directories containing index.html were found." >&2
+            exit 1
+          fi
+
+          touch _site/.nojekyll
+
+          # Give the project root a small generated index linking to every companion.
+          {
+            cat <<'EOF'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <title>Reading Companions</title>
+            <style>
+              body { font-family: system-ui, sans-serif; max-width: 760px; margin: 4rem auto; padding: 0 1.25rem; line-height: 1.5; }
+              h1 { margin-bottom: 1.5rem; }
+              ul { padding-left: 1.25rem; }
+              li { margin: .65rem 0; }
+            </style>
+          </head>
+          <body>
+            <h1>Reading Companions</h1>
+            <ul>
+          EOF
+
+            for dir in "${companions[@]}"; do
+              label="${dir//-/ }"
+              printf '      <li><a href="./%s/">%s</a></li>\n' "$dir" "$label"
+            done
+
+            cat <<'EOF'
+            </ul>
+          </body>
+          </html>
+          EOF
+          } > _site/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
