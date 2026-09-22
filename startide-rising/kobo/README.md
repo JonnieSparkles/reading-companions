@@ -13,13 +13,13 @@ The glossary has **76 entries**: 60 headwords from the glossary in the supplied 
 1. Delete the old `dicthtml-startide.zip` from your Kobo if you previously installed it (it was incorrectly displayed as Sesotho). Download `dicthtml-x1startide.zip` above. **Do not unzip it.**
 2. Connect your Kobo by USB, show hidden folders, and copy the ZIP to `KOBOeReader/.kobo/custom-dict/` (create `custom-dict` if necessary).
 3. Safely eject your Kobo. Open *Startide Rising*, long-press a known term such as **Creideiki**, then select **dicthtml-x1startide.zip** in the dictionary picker (on recent Kobo firmware it will usually show the literal filename because `x1` is not a built-in language).
-4. Close and reopen the book; test a second word. Switch to another book and back to see whether your Kobo remembers the selected dictionary separately. **Per-book persistence still needs a device test.**
+4. Kobo remembers the selected dictionary independently for each book (confirmed by device testing). To look up an ordinary English word, switch to the built-in English dictionary in the same popup; switching back to the book glossary is straightforward.
 
-Recent Kobo firmware (4.24.15672+) supports custom dictionaries in `.kobo/custom-dict/`. Older firmware may need patches. The prefix `dicthtml-` is required; using an arbitrary book name immediately after it can collide with a real language code. `x1` avoids that collision, but Kobo may show the raw filename instead of a pretty title. Device-specific naming and remembered-selection behavior still need testing.
+Recent Kobo firmware (4.24.15672+) supports custom dictionaries in `.kobo/custom-dict/`. Older firmware may need patches. The prefix `dicthtml-` is required; using an arbitrary book name immediately after it can collide with a real language code. `x1` avoids that collision, but Kobo may show the raw filename instead of a pretty title. On the tested Kobo, the glossary works in the native popup and per-book dictionary choice persists. Other models or firmware versions may behave differently.
 
 ### Normal English words
 
-This edition is **glossary-only**. It does not replace the Kobo's English dictionary. For an ordinary word not covered here, choose your existing English dictionary. A later edition could merge a separately licensed English source if Kobo remembers the custom choice.
+This edition is **glossary-only**. It does not replace the Kobo's English dictionary. For an ordinary word not covered here, choose your existing English dictionary. Because Kobo remembers the dictionary selected for each book and switching to English is straightforward, a merged English dictionary is optional, not necessary for this workflow.
 
 ## Rebuild (optional)
 
