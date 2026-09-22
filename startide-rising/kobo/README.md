@@ -1,37 +1,38 @@
-# Startide Rising — Kobo glossary spike
+# Startide Rising — Kobo companion dictionary
 
-Goal: use Kobo's native long-press dictionary popup for book-specific terms.
+A book-specific glossary for David Brin's *Startide Rising*, designed for Kobo's normal long-press dictionary popup.
 
-This spike uses a unique custom-dictionary locale, `s1`. On recent Kobo firmware, custom dictionaries can be copied into `.kobo/custom-dict/` and selected from the normal dictionary dropdown.
+**Installable file:** [dicthtml-startide.zip](./dicthtml-startide.zip) — a descriptive Kobo custom-dictionary filename, not the earlier cryptic `s1` name.
 
-## Build
+**Editable source:** [startide-rising.df](./startide-rising.df), in the [dictgen](https://github.com/pgaskin/dictutil) dictionary format.
 
-Download `dictgen` from [pgaskin/dictutil](https://github.com/pgaskin/dictutil/releases), then from this folder run:
+The glossary has **76 entries**: 60 headwords from the glossary in the supplied EPUB, paraphrased and expanded, plus 16 companion additions for terms that occur in the book but weren't explained in that glossary (including Trinary, Anglic, Whale Dream, Streaker, and Kithrup). Available pronunciation hints and alternative spellings are included. The EPUB's prose is not redistributed.
+
+## Install (no software required)
+
+1. Download `dicthtml-startide.zip` above. **Do not unzip it.**
+2. Connect your Kobo by USB, show hidden folders, and copy the ZIP to `KOBOeReader/.kobo/custom-dict/` (create `custom-dict` if necessary).
+3. Safely eject your Kobo. Open *Startide Rising*, long-press a known term such as **Creideiki**, then select the **Startide** custom dictionary in the dictionary picker.
+4. Close and reopen the book; test a second word. Switch to another book and back to see whether your Kobo remembers the selected dictionary separately. **Per-book persistence still needs a device test.**
+
+Recent Kobo firmware (4.24.15672+) supports custom dictionaries in `.kobo/custom-dict/`. Older firmware may need patches. Descriptive custom dictionary names work on many models, but device-specific naming or remembered-selection behavior is not guaranteed.
+
+### Normal English words
+
+This edition is **glossary-only**. It does not replace the Kobo's English dictionary. For an ordinary word not covered here, choose your existing English dictionary. A later edition could merge a separately licensed English source if Kobo remembers the custom choice.
+
+## Rebuild (optional)
+
+Download `dictgen` from [pgaskin/dictutil](https://github.com/pgaskin/dictutil/releases), then run this command from this folder:
 
 ```bash
-dictgen -o dicthtml-s1.zip startide-rising.df
+dictgen -o dicthtml-startide.zip startide-rising.df
 ```
 
-On Windows, the equivalent is:
-
-```powershell
-.\dictgen-windows.exe -o dicthtml-s1.zip startide-rising.df
-```
-
-## Install / device test
-
-1. Connect the Kobo by USB.
-2. Copy `dicthtml-s1.zip` to `.kobo/custom-dict/`.
-3. Safely eject the Kobo.
-4. Open *Startide Rising*.
-5. Long-press a glossary term such as `Tymbrimi` or `Creideiki`.
-6. Choose the `s1` custom dictionary from the dictionary selector.
-7. Close the book, open another book, then return to *Startide Rising* and long-press another term.
-
-The important test is whether Kobo remembers that dictionary choice for this book without affecting the dictionary selected in other books.
+You do **not** need dictgen to use the supplied ZIP.
 
 ## Scope
 
-This first dictionary is intentionally glossary-only. It does **not** yet merge a normal English dictionary. If the per-book persistence test works, the next version can merge an open English dictionary with these entries so ordinary-word lookup continues to work without switching dictionaries.
+The original headword list and pronunciations came from the EPUB's *Glossary and Cast of Characters*. The 16 additions describe terms present in the novel. Definitions are paraphrases, kept to introductory information or details already revealed by the novel's front-matter glossary. This is not a chapter-aware, spoiler-filtered dictionary.
 
-Definitions are intentionally short and spoiler-light.
+No Kobo database edits, firmware replacements or permanent GitHub Actions are required.
