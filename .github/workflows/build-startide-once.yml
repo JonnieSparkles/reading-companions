@@ -1,0 +1,46 @@
+name: One-time Startide dictionary build
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/build-startide-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Build dictionary
+        shell: bash
+        working-directory: startide-rising/kobo
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 --silent --show-error \
+            https://github.com/pgaskin/dictutil/releases/download/v0.3.2/dictgen-linux-64bit \
+            -o /tmp/dictgen
+          chmod +x /tmp/dictgen
+          /tmp/dictgen -o dicthtml-startide.zip startide-rising.df
+          python3 - <<'PY'
+          import zipfile, pathlib
+          p=pathlib.Path('dicthtml-startide.zip')
+          with zipfile.ZipFile(p) as z:
+              assert z.testzip() is None
+              assert 'words' in z.namelist()
+              assert any(name.endswith('.html') for name in z.namelist())
+          assert p.stat().st_size > 1000
+          print(f'Built verified Kobo ZIP: {p.stat().st_size:,} bytes')
+          PY
+      - name: Commit build and finish
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add startide-rising/kobo/dicthtml-startide.zip
+          git commit -m "Add ready-to-install Startide Rising Kobo dictionary"
+          git push origin HEAD:main
